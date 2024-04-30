@@ -19,6 +19,7 @@ std::atomic<bool> isDiscovered(false); // Flag para indicar se o computador foi 
 // Estrutura para representar um computador
 struct Computer {
     std::string macAddress;
+    std::string ipAddress;
     int id;
     bool isServer; // true se for um servidor, false se for um cliente
 };
@@ -70,6 +71,7 @@ void handleDiscoveryReceiver() {
             // Cria uma nova estrutura Computer para armazenar informações sobre o computador
             Computer comp;
             comp.macAddress = "Sample MAC"; // Substituir por lógica real para obter o endereço MAC
+            comp.ipAddress = "Sample IP";
             comp.id = computers.size() + 1;
             comp.isServer = false; // Assumindo que todos os computadores descobertos são clientes
 
