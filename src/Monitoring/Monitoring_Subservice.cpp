@@ -7,55 +7,11 @@
 #include <mutex>
 #include <vector>
 #include <atomic>
+#include "src/Monitoring/Headers/Monitoring_Subservice.hpp"
 
-#define MAX_BUFFER_SIZE 1024
-#define MONITORING_MESSAGE "Are you Awake?"
-#define MONITORING_MESSAGE_RESPONSE "i am Awake"
-#define MONITORING_PORT 42000
-#define TIMEOUT_SEC 5
 using namespace std;
 
 mutex mtx;
-
-string getManagerIp() {
-    for (int i = 0; i < computers.size(); i++) {
-        if (computers[i].isServer) {
-            return computers[i].ipAddress;
-        }
-    }
-    return "";
-}
-
-int createSocket() {
-    int sockfd;
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        cerr << "Error in socket creation" << endl;
-        return -1;
-    }
-    return sockfd;
-}
-
-void setSocketTimeout(int sockfd, int sec) {
-    struct timeval timeout;
-    timeout.tv_sec = sec;
-    timeout.tv_usec = 0;
-    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0) {
-        std::cerr << "Erro ao definir o timeout de recebimento" << std::endl;
-        return 1;
-    }
-}
-
-struct sockaddr_in configureServerAddress(string ip) {
-    struct sockaddr_in Addr;
-    memset(&Addr, 0, sizeof(Addr));
-    Addr.sin_family = AF_INET;
-    Addr.sin_port = htons(MONITORING_PORT);
-    if (inet_pton(AF_INET, ip, &Addr.sin_addr) <= 0) {
-        std::cerr << "Error when converting IP Adress" << std::endl;
-        return -1;
-    }
-    return Addr;
-}
 
 void handleMonitoringReceiver() {
     int sockfd = createSocket();
@@ -85,7 +41,6 @@ void handleMonitoringReceiver() {
     }
 }
 
-// Função para enviar mensagens de monitoramento
 void handleMonitoringSender() {
     char buffer[MAX_BUFFER_SIZE];
 
