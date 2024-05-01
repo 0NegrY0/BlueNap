@@ -119,7 +119,9 @@ void handleMonitoringSender() {
             int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, sizeof(clientAddr));
             if (bytesReceived < 0) {
                 if (errno == EAGAIN || errno == EWOULDBLOCK) { //PC ta dormindo
+                    mtx.lock();
                     computers[i].isAwake = false;
+                    mtx.unlock();
                 }
                 else {
                     std::cerr << "Error in recvfrom()" << std::endl;
@@ -128,7 +130,9 @@ void handleMonitoringSender() {
             }
             else {
                 if (strcmp(buffer, MONITORING_MESSAGE_RESPONSE) == 0) {
+                    mtx.lock();
                     computers[i].isAwake = true;
+                    mtx.unlock();
                 }
             }
         }
