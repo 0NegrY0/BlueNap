@@ -22,6 +22,7 @@ struct Computer {
     std::string ipAddress;
     int id;
     bool isServer; // true se for um servidor, false se for um cliente
+    bool isAwake;
 };
 
 std::vector<Computer> computers; // Vetor para armazenar informações dos computadores

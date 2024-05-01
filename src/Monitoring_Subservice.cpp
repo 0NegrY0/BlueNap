@@ -42,7 +42,7 @@ void setSocketTimeout(int sockfd, int sec) {
 string getManagerIp() {
     for (int i = 0; i < computers.size(); i++) {
         if (computers[i].isServer) {
-            return computers[i].ip;
+            return computers[i].ipAddress;
         }
     }
     return "";
@@ -108,7 +108,7 @@ void handleMonitoringSender() {
             memset(&clientAddr, 0, sizeof(clientAddr));
             clientAddr.sin_family = AF_INET;
             clientAddr.sin_port = htons(MONITORING_PORT);
-            if (inet_pton(AF_INET, computers[i].ip, &clientAddr.sin_addr) <= 0) {
+            if (inet_pton(AF_INET, computers[i].ipAddress, &clientAddr.sin_addr) <= 0) {
                 std::cerr << "Erro ao converter o endereço IP" << std::endl;
                 return 1;
             }
