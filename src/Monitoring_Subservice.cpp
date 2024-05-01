@@ -16,18 +16,24 @@
 using namespace std;
 
 mutex mtx;
-atomic<bool> stopSending(false); // Flag para indicar se a função de envio deve parar de enviar mensagens
-atomic<bool> isDiscovered(false); // Flag para indicar se o computador foi descoberto
 
-// Estrutura para representar um computador
-struct Computer {
-    string macAddress;
-    int id;
-    bool isServer; // true se for um servidor, false se for um cliente
-};
+string getManagerIp() {
+    for (int i = 0; i < computers.size(); i++) {
+        if (computers[i].isServer) {
+            return computers[i].ipAddress;
+        }
+    }
+    return "";
+}
 
-vector<Computer> computers; // Vetor para armazenar informações dos computadores
-bool messageSent;
+int createSocket() {
+    int sockfd;
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+        cerr << "Error in socket creation" << endl;
+        return -1;
+    }
+    return sockfd;
+}
 
 void setSocketTimeout(int sockfd, int sec) {
     struct timeval timeout;
@@ -39,39 +45,30 @@ void setSocketTimeout(int sockfd, int sec) {
     }
 }
 
-string getManagerIp() {
-    for (int i = 0; i < computers.size(); i++) {
-        if (computers[i].isServer) {
-            return computers[i].ipAddress;
-        }
+struct sockaddr_in configureServerAddress(string ip) {
+    struct sockaddr_in Addr;
+    memset(&Addr, 0, sizeof(Addr));
+    Addr.sin_family = AF_INET;
+    Addr.sin_port = htons(MONITORING_PORT);
+    if (inet_pton(AF_INET, ip, &Addr.sin_addr) <= 0) {
+        std::cerr << "Error when converting IP Adress" << std::endl;
+        return -1;
     }
-    return "";
+    return Addr;
 }
 
-// Função para lidar com a descoberta de estações participantes
 void handleMonitoringReceiver() {
-    int sockfd;
-    struct sockaddr_in managerAddr;
-    char buffer[MAX_BUFFER_SIZE];
-
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        cerr << "Error in socket creation" << endl;
-        return;
-    }
+    int sockfd = createSocket();
 
     string managerIp = getManagerIp();
     if (managerIp == "") {
         cerr << "Erro ao obter o IP do gerenciador" << endl;
-        return;
+        return -1;
     }
 
-    memset(&managerAddr, 0, sizeof(managerAddr));
-    managerAddr.sin_family = AF_INET;
-    managerAddr.sin_port = htons(MONITORING_PORT);
-    if (inet_pton(AF_INET, managerIp, &managerAddr.sin_addr) <= 0) {
-        std::cerr << "Erro ao converter o endereço IP" << std::endl;
-        return 1;
-    }
+    struct sockaddr_in managerAddr = configureServerAddress(managerIp);
+
+    char buffer[MAX_BUFFER_SIZE];
 
     while (true) {
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&managerAddr, sizeof(managerAddr));
@@ -90,28 +87,14 @@ void handleMonitoringReceiver() {
 
 // Função para enviar mensagens de monitoramento
 void handleMonitoringSender() {
-    int sockfd;
-    struct sockaddr_in clientAddr;
-    socklen_t clientLen = sizeof(clientAddr);
     char buffer[MAX_BUFFER_SIZE];
 
-    // Cria socket UDP para descoberta
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        std::cerr << "Error in socket creation" << std::endl;
-        return;
-    }
-
+    int sockfd = createSocket();
     setSocketTimeout(sockfd, TIMEOUT_SEC);
 
     while (true) {
         for (int i = 0; i < computers.size(); i++) {
-            memset(&clientAddr, 0, sizeof(clientAddr));
-            clientAddr.sin_family = AF_INET;
-            clientAddr.sin_port = htons(MONITORING_PORT);
-            if (inet_pton(AF_INET, computers[i].ipAddress, &clientAddr.sin_addr) <= 0) {
-                std::cerr << "Erro ao converter o endereço IP" << std::endl;
-                return 1;
-            }
+            struct sockaddr_in clientAddr = configureServerAddress(computers[i].ipAddress);
 
             strcpy(buffer, MONITORING_MESSAGE);
             sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, sizeof(clientAddr));
