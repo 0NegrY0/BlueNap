@@ -32,7 +32,7 @@ BlueNap is an open-source project developed as part of an academic project at UF
 
 #### License
 
-BlueNap is distributed under the GNU General Public License v3.0 (GPL-3.0), allowing the use and modification of the source code for any purpose, with or without modifications, as long as the license is included.
+BlueNap is distributed under the [GNU General Public License v3.0 (GPL-3.0)](LICENSE.md), allowing the use and modification of the source code for any purpose, with or without modifications, as long as the license is included.
 
 
 
@@ -70,4 +70,4 @@ BlueNap é um projeto de código aberto desenvolvido como parte de um projeto ac
 
 #### Licença
 
-BlueNap é distribuído sob a licença [GNU 3.0](LICENSE.md), permitindo o uso e a modificação do código-fonte para qualquer finalidade, com ou sem modificações, desde que a licença seja incluída.
+BlueNap é distribuído sob a licença [GNU General Public License v3.0 (GPL-3.0)](LICENSE.md), permitindo o uso e a modificação do código-fonte para qualquer finalidade, com ou sem modificações, desde que a licença seja incluída.
