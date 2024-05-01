@@ -1,29 +1,10 @@
-#include <iostream>
-#include <thread>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <cstring>
-#include <mutex>
-#include <vector>
-#include <atomic>
-
-#define PORT_DISCOVERY 8888
-#define MAX_BUFFER_SIZE 1024
-#define DISCOVERY_MESSAGE "sleep service discovery"
+#include "Headers/Discovery_Subservice.hpp"
+#include "Headers/GetIpAdress.hpp"
+#include "Headers/GetMacAdress.hpp"
 
 std::mutex mtx;
 std::atomic<bool> stopSending(false); // Flag para indicar se a função de envio deve parar de enviar mensagens
 std::atomic<bool> isDiscovered(false); // Flag para indicar se o computador foi descoberto
-
-// Estrutura para representar um computador
-struct Computer {
-    std::string macAddress;
-    std::string ipAddress;
-    int id;
-    bool isServer; // true se for um servidor, false se for um cliente
-};
-
 std::vector<Computer> computers; // Vetor para armazenar informações dos computadores
 
 // Função para lidar com a descoberta de estações participantes
@@ -70,8 +51,8 @@ void handleDiscoveryReceiver() {
 
             // Cria uma nova estrutura Computer para armazenar informações sobre o computador
             Computer comp;
-            comp.macAddress = "Sample MAC"; // Substituir por lógica real para obter o endereço MAC
-            comp.ipAddress = "Sample IP";
+            comp.macAddress = getMacAddress(); // Substituir por lógica real para obter o endereço MAC
+            comp.ipAddress = getIPAddress();
             comp.id = computers.size() + 1;
             comp.isServer = false; // Assumindo que todos os computadores descobertos são clientes
 
