@@ -7,7 +7,7 @@
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <ifaddrs.h>
-#include <netdb.h> // Added
+#include <netdb.h>
 
 char* getIPAddress() {
     struct ifaddrs *ifaddr, *ifa;
