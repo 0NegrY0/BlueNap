@@ -1,4 +1,4 @@
-### BlueNap
+## BlueNap
 
 ![BlueNap Logo](bluenap_logo.png)
 
