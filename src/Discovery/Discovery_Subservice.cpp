@@ -1,6 +1,5 @@
 #include "Headers/Discovery_Subservice.hpp"
-#include "Headers/GetIpAdress.hpp"
-#include "Headers/GetMacAdress.hpp"
+#include "Headers/Auxiliar_Functions.hpp"
 
 std::mutex mtx;
 std::atomic<bool> stopSending(false); // Flag para indicar se a função de envio deve parar de enviar mensagens
