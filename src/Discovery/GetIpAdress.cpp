@@ -1,13 +1,4 @@
-#include <iostream>
-#include <cstring>
-#include <cstdlib>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <net/if.h>
-#include <ifaddrs.h>
-#include <netdb.h>
+#include "Headers/GetIpAdress.hpp"
 
 char* getIPAddress() {
     struct ifaddrs *ifaddr, *ifa;
