@@ -2,30 +2,30 @@
 #include "Headers/Auxiliar_Functions.hpp"
 
 std::mutex mtx;
-std::atomic<bool> stopSending(false); // Flag para indicar se a função de envio deve parar de enviar mensagens
-std::atomic<bool> isDiscovered(false); // Flag para indicar se o computador foi descoberto
-std::vector<Computer> computers; // Vetor para armazenar informações dos computadores
+std::atomic<bool> stopSending(false); // Flag to indicate if the sending function should stop sending messages
+std::atomic<bool> isDiscovered(false); // Flag to indicate if the computer has been discovered
+std::vector<Computer> computers; // Vector to store information of the computers
 
-// Função para lidar com a descoberta de estações participantes
+// Function to handle discovery messages reception
 void handleDiscoveryReceiver() {
     int sockfd;
     struct sockaddr_in serverAddr, clientAddr;
     socklen_t clientLen = sizeof(clientAddr);
     char buffer[MAX_BUFFER_SIZE];
 
-    // Cria socket UDP para descoberta
+    // Create UDP socket for discovery
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         std::cerr << "Error in socket creation" << std::endl;
         return;
     }
 
-    // Configura o endereço do servidor
+    // Configure server address
     memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_addr.s_addr = INADDR_ANY;
     serverAddr.sin_port = htons(PORT_DISCOVERY);
 
-    // Liga o socket ao endereço do servidor
+    // Bind socket to server address
     if (bind(sockfd, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
         std::cerr << "Error in bind()" << std::endl;
         close(sockfd);
@@ -37,81 +37,96 @@ void handleDiscoveryReceiver() {
     while (true) {
         memset(buffer, 0, sizeof(buffer));
 
-        // Recebe pacote de descoberta
+        // Receive discovery packet
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
         if (bytesReceived < 0) {
             std::cerr << "Error in recvfrom()" << std::endl;
             continue;
         }
 
-        // Verifica se o pacote recebido é uma mensagem de descoberta
+        // Check if received packet is a discovery message
         if (strcmp(buffer, DISCOVERY_MESSAGE) == 0) {
             std::cout << "Received discovery message from: " << inet_ntoa(clientAddr.sin_addr) << std::endl;
 
-            // Cria uma nova estrutura Computer para armazenar informações sobre o computador
-            Computer comp;
-            comp.macAddress = getMacAddress(); // Substituir por lógica real para obter o endereço MAC
-            comp.ipAddress = getIPAddress();
-            comp.id = computers.size() + 1;
-            comp.isServer = false; // Assumindo que todos os computadores descobertos são clientes
+            // Extract IP and MAC address from the message
+            std::string message(buffer);
+            std::string ip, mac;
+            size_t ipPos = message.find("IP:");
+            size_t macPos = message.find(", MAC:");
+            if (ipPos != std::string::npos && macPos != std::string::npos) {
+                ip = message.substr(ipPos + 4, macPos - (ipPos + 4));
+                mac = message.substr(macPos + 7);
+            } else {
+                std::cerr << "Invalid discovery message format" << std::endl;
+                continue;
+            }
 
-            // Adquire exclusão mútua ao adicionar um novo computador ao vetor
+            // Create a new Computer structure to store information about the computer
+            Computer comp;
+            comp.macAddress = mac;
+            comp.ipAddress = ip;
+            comp.id = computers.size() + 1;
+            comp.isServer = false; // Assuming all discovered computers are clients
+
+            // Acquire mutual exclusion when adding a new computer to the vector
             mtx.lock();
             computers.push_back(comp);
             mtx.unlock();
 
-            // Informa que o computador foi descoberto
+            // Inform that the computer has been discovered
             isDiscovered = true;
         }
     }
 
-    // Fecha o socket
+    // Close the socket
     close(sockfd);
 }
 
-// Função para enviar mensagens de descoberta
+// Function to send discovery messages
 void handleDiscoverySender() {
     int sockfd;
     struct sockaddr_in serverAddr;
     char buffer[MAX_BUFFER_SIZE];
 
-    // Cria socket UDP para descoberta
+    // Create UDP socket for discovery
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         std::cerr << "Error in socket creation" << std::endl;
         return;
     }
 
-    // Configura o endereço do servidor
+    // Configure server address
     memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(PORT_DISCOVERY);
     serverAddr.sin_addr.s_addr = INADDR_BROADCAST;
 
     while (true) {
-        if (!isDiscovered) { // Verifica se o computador ainda não foi descoberto
-            // Envia mensagem de descoberta
-            strcpy(buffer, DISCOVERY_MESSAGE);
+        if (!isDiscovered) { // Check if the computer has not been discovered yet
+            // Prepare discovery message with placeholders for IP and MAC address
+            sprintf(buffer, "%s", DISCOVERY_MESSAGE);
+            
+            // Send discovery message
             sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
-            sleep(1); // Aguarda um segundo entre os envios
+            sleep(1); // Wait one second between sends
         } else {
-            break; // Se o computador foi descoberto, encerra o envio
+            break; // If the computer has been discovered, stop sending
         }
     }
 
-    // Fecha o socket
+    // Close the socket
     close(sockfd);
 }
 
 int main() {
     std::vector<std::thread> threads;
 
-    // Adiciona threads para lidar com a descoberta de estações participantes
+    // Add threads to handle discovery messages reception
     threads.push_back(std::thread(handleDiscoveryReceiver));
 
-    // Adiciona threads para enviar mensagens de descoberta
+    // Add threads to send discovery messages
     threads.push_back(std::thread(handleDiscoverySender));
 
-    // Aguarda a finalização de todas as threads
+    // Wait for all threads to finish
     for (auto& th : threads) {
         th.join();
     }
