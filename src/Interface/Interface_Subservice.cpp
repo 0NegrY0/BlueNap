@@ -13,7 +13,6 @@ vector<Computer> computers; // Vector to store information of the computers
 // Function to send discovery messages
 void Interface() {
     bool isServer;
-    int SIZE;
 
     int index = 0;
     Computer leader;
@@ -28,7 +27,7 @@ void Interface() {
         cout << endl << "========== Leader Machine ==========" << endl;
         cout << "ID: "<<leader.id<<" MAC Adress:"<<leader.macAddress<<" IP Adress: "<<leader.ipAddress;
         cout << endl << "========== Clients ==========" << endl;
-        for (int i=0; i<SIZE; i++){
+        for (int i=0; i<(sizeof(computers) / sizeof(computers[0])); i++){
             if (i != index){
                 cout << "ID: "<<computers[i].id<<" MAC Adress:"<<computers[i].macAddress<<" IP Adress: "<<computers[i].ipAddress<<endl;
             }
