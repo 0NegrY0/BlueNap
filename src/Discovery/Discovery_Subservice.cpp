@@ -1,5 +1,10 @@
 #include "Headers/Discovery_Subservice.hpp"
 #include "Headers/Auxiliar_Functions.hpp"
+#include <iostream>
+#include <cstring>
+#include <cerrno>
+#include <arpa/inet.h>
+#include <unistd.h>
 
 std::mutex mtx;
 std::atomic<bool> stopSending(false); // Flag to indicate if the sending function should stop sending messages
