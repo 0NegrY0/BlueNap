@@ -1,4 +1,4 @@
-#include "Headers/Interface_Subservice.hpp"
+#include "Utils.hpp"
 #include <iostream>
 #include <string>
 #include <cstring>
@@ -7,38 +7,36 @@
 
 using namespace std;
 
-vector<Computer> computers; // Vector to store information of the computers
-
-
 // Function to send discovery messages
 void Interface() {
-    bool isServer;
-
+    
     int index = 0;
-    Computer leader;
-    leader = computers[index];
-    while (!leader.isServer){
+    while (!computers[index].isServer){
         index++;
-        leader = computers[index];
     }
     string input;
 
     while (true){
         cout << endl << "========== Leader Machine ==========" << endl;
-        cout << "ID: "<<leader.id<<" MAC Adress:"<<leader.macAddress<<" IP Adress: "<<leader.ipAddress;
+        cout << "ID: "<<computers[index].id<<" MAC Adress:"<<computers[index].macAddress<<" IP Adress: "<<computers[index].ipAddress;
         cout << endl << "========== Clients ==========" << endl;
-        for (int i=0; i<(sizeof(computers) / sizeof(computers[0])); i++){
-            if (i != index){
-                cout << "ID: "<<computers[i].id<<" MAC Adress:"<<computers[i].macAddress<<" IP Adress: "<<computers[i].ipAddress<<endl;
+        for (int i=0; i<computers.size(); i++){
+            if (!computers[i].isServer){
+                cout << "ID: "<<computers[i].id<<" MAC Adress:"<<computers[i].macAddress<<" IP Adress: "<<computers[i].ipAddress<<" Is awake: ";
+                if (computers[i].isAwake){
+                    cout << "Yes"<<endl;
+                }
+                else{
+                    cout << "No"<<endl;
+                }
             }
         }
-        cout << "ID: "<<leader.id<<" MAC Adress:"<<leader.macAddress<<" IP Adress: "<<leader.ipAddress;
         if (isServer){
             cout << endl << "You are the Leader" << endl; 
             cout << "Enter 0 to exit, Enter 1 to wake a client, Enter anything to update" << endl; 
         }
         else {
-            cout << endl << "You are a Cliente" << endl << "Enter 0 to exit, Enter anything to update" << endl; 
+            cout << endl << "You are a Client" << endl << "Enter 0 to exit, Enter anything to update" << endl; 
         }
         getline(cin, input);
         if (input == "0"){
@@ -49,7 +47,8 @@ void Interface() {
             getline(cin, input);
             //acordar (input); FUNCAO DO TIAGO OU EVENTO SEILA
         }
-        cout <<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl;
+        system(clear);
+        //cout <<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl;
     }
     return;
 }
