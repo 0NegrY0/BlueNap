@@ -1,4 +1,4 @@
-#include "Monitoring.hpp"
+#include "../include/Monitoring.hpp"
 #include <iostream>
 #include <thread>
 #include <unistd.h>
@@ -15,12 +15,14 @@ int Monitoring::server() {
 
     char buffer[MAX_BUFFER_SIZE];
 
+    int ports;  //TODO
+
     int sockfd = createSocket();
     setSocketTimeout(sockfd, TIMEOUT_SEC);
 
     while (true) {
         for (int i = 0; i < computers.size(); i++) {
-            struct sockaddr_in clientAddr = Utils::configureServerAddress(computers[i].ipAddress);
+            struct sockaddr_in clientAddr = Utils::configureServerAddress(computers[i].ipAddress, ports);
 
             strcpy(buffer, MONITORING_MESSAGE);
 
@@ -54,13 +56,15 @@ int Monitoring::server() {
 int Monitoring::client() {
     int sockfd = createSocket();
 
+    int ports;  //TODO
+
     string managerIp = getManagerIp(computers);
     if (managerIp == "") {
         cerr << "Erro ao obter o IP do gerenciador" << endl;
         return -1;
     }
 
-    struct sockaddr_in managerAddr = configureServerAddress(managerIp);
+    struct sockaddr_in managerAddr = configureServerAddress(managerIp, ports);
 
     char buffer[MAX_BUFFER_SIZE];
 

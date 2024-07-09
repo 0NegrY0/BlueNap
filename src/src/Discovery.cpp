@@ -1,4 +1,4 @@
-#include "Discovery.hpp"
+#include "../include/Discovery.hpp"
 #include <iostream>
 #include <cstring>
 #include <cerrno>
@@ -74,7 +74,7 @@ int Discovery::server() {
             mtx.unlock();
 
             // Inform that the computer has been discovered
-            DiscoverySubservice::isDiscovered = true;
+            Discovery::isDiscovered = true;
         }
     }
 

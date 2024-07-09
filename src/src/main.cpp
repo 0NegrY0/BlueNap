@@ -1,8 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <thread>
-#include "Discovery.hpp"
-#include "Monitoring.hpp"
+#include "../include/Discovery.hpp"
+#include "../include/Monitoring.hpp"
 
 using namespace std;
 
@@ -15,8 +15,8 @@ int main() {
 
     vector<thread> threads;
 
-    DiscoverySubservice discovery;
-    MonitoringSubservice monitoring;
+    Discovery discovery;
+    Monitoring monitoring;
 
     if (isMaster) {
         threads.push_back(thread(discovery.server()));
