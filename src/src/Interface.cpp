@@ -46,10 +46,11 @@ int Interface::server() {
 
 
 int Interface::client() {
-    string macAddress;
-    string ipAddress;
-    // Alguem botar aqui como faz pra pegar o endereco e salvar nas variavel :D
-    //
+    string macAddress = Utils::getMacAddress();
+    string ipAddress = Utils::getIPAddress();
+
+    // Testar isso ai 
+    
     cout <<"You are a Client" <<endl<<" MAC Adress:"<<macAddress<<" IP Adress: "<<ipAddress<<endl; 
 
     //system(clear);
