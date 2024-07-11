@@ -23,6 +23,11 @@ int main() {
     Interface interface;
 
     if (isMaster) {
+        Computer comp;
+        comp.macAddress = discovery.getMacAddress();
+        comp.ipAddress = discovery.getMacAddress();
+        comp.id = 1;
+        comp.isServer = true;
         threads.push_back(thread(&Discovery::server, &discovery));
         threads.push_back(thread(&Monitoring::server, &monitoring));
         threads.push_back(thread(&Interface::server, &interface));
