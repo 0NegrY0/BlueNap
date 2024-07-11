@@ -9,6 +9,9 @@
 #include <fstream>
 
 using namespace std;
+
+vector<Computer> computers;
+mutex mtx;
         
 string Utils::getIPAddress() {
     struct ifaddrs *ifaddr, *ifa;
@@ -71,7 +74,7 @@ string Utils::getMacAddress() {
     throw runtime_error("Failed to find a network interface with a MAC address.");
 }
 
-string Utils::getManagerIp(const vector<Utils::Computer>& computers) {
+string Utils::getManagerIp(const vector<Computer>& computers) {
     for (size_t i = 0; i < computers.size(); ++i) {
         if (computers[i].isServer) {
             return computers[i].ipAddress;

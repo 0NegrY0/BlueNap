@@ -3,6 +3,7 @@
 #include <thread>
 #include "../include/Discovery.hpp"
 #include "../include/Monitoring.hpp"
+#include "../include/Management.hpp"
 #include "../include/Interface.hpp"
 
 using namespace std;
@@ -18,25 +19,19 @@ int main() {
 
     Discovery discovery;
     Monitoring monitoring;
+    Management management;
     Interface interface;
 
     if (isMaster) {
-        threads.push_back(thread(discovery.server()));
-        threads.push_back(thread(monitoring.server()));
-        threads.push_back(thread(interface.server()));
+        threads.push_back(thread(&Discovery::server, &discovery));
+        threads.push_back(thread(&Monitoring::server, &monitoring));
+        threads.push_back(thread(&Interface::server, &interface));
     }
     else {
-        threads.push_back(thread(discovery.client()));
-        threads.push_back(thread(monitoring.client()));
-        threads.push_back(thread(interface.client()));
+        threads.push_back(thread(&Discovery::client, &discovery));
+        threads.push_back(thread(&Monitoring::client, &monitoring));
+        threads.push_back(thread(&Interface::client, &interface));
     }
 
     return 0;
 }
-
-/*
-Subservices/Discovey_Subservice.cpp
-Subservices/Monitoring_Subservice.cpp
-main.cpp
-utils.cpp
-*/

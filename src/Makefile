@@ -1,22 +1,27 @@
-# Compiler
-CC = g++
+CXX = g++
+CXXFLAGS = -std=c++17
+LDFLAGS_MAIN = -pthread
+TARGET = BlueNap
+SRCS := $(wildcard src/*.cpp)
+OBJS := $(filter-out build/main.o, $(patsubst src/%.cpp,build/%.o,$(SRCS)))
+MAIN_OBJ := build/main.o
 
-# Compiler flags
-CFLAGS = -Wall -std=c++11 -pthread
+all: $(TARGET)
 
-# Source files
-SRC = Subservices/Discovery_Subservice.cpp Subservices/Monitoring_Subservice.cpp main.cpp utils.cpp Subservices/Discovery_Subservice.hpp Subservices/Monitoring_Subservice.hpp utils.hpp
+$(TARGET): $(OBJS) $(MAIN_OBJ)
+	$(CXX) $^ -o $(TARGET)
 
-# Output binary
-BIN = bluenap.exe
+build/%.o: src/%.cpp | build
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Make all
-all: $(BIN)
+build/main.o: src/main.cpp | build
+	$(CXX) $(CXXFLAGS) $(LDFLAGS_MAIN) -c $< -o $@
 
-# Link
-$(BIN): $(SRC)
-    $(CC) $(CFLAGS) -o $(BIN) $(SRC)
+build:
+	mkdir -p build
 
-# Clean
 clean:
-    rm -f $(BIN)
+	rm -rf build $(TARGET)
+
+run: $(TARGET)
+	./$(TARGET)

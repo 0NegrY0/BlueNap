@@ -74,12 +74,13 @@ int Discovery::server() {
             mtx.unlock();
 
             // Inform that the computer has been discovered
-            Discovery::isDiscovered = true;
+            isDiscovered = true;
         }
     }
 
     // Close the socket
     close(sockfd);
+    return 0;
 }
 
 int Discovery::client() {
@@ -114,4 +115,5 @@ int Discovery::client() {
 
     // Close the socket
     close(sockfd);
+    return 0;
 }

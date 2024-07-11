@@ -22,7 +22,7 @@ int Monitoring::server() {
 
     while (true) {
         for (int i = 0; i < computers.size(); i++) {
-            struct sockaddr_in clientAddr = Utils::configureServerAddress(computers[i].ipAddress, ports);
+            struct sockaddr_in clientAddr = configureServerAddress(computers[i].ipAddress, ports);
 
             strcpy(buffer, MONITORING_MESSAGE);
 

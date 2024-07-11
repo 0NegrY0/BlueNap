@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <mutex>
+#include <filesystem>
 
 #define MAX_BUFFER_SIZE 1024
 
@@ -19,8 +20,8 @@ struct Computer {
     bool isAwake;
 };
 
-vector<Computer> computers;
-mutex mtx;
+extern vector<Computer> computers;
+extern mutex mtx;
 
 class Utils {
     public:

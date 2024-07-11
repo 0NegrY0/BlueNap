@@ -1,13 +1,16 @@
 #include "../include/Interface.hpp"
+#include "../include/Management.hpp"
 #include <iostream>
 #include <string>
 #include <cstring>
 #include <cerrno>
 #include <unistd.h>
+#include <cstdlib>
 
 using namespace std;
 
 int Interface::server() {
+    Management management;
 
     int index = 0;
     while (!computers[index].isServer){
@@ -36,25 +39,22 @@ int Interface::server() {
         if (input == "1"){
             cout << "Enter the ID of the client you want to awake: ";
             getline(cin, input);
-            //acordar (input); FUNCAO DO TIAGO OU EVENTO SEILA
+            int id = stoi(input);
+            management.wakeOnLan(computers[id].macAddress, computers[id].ipAddress);
         }
-        system(clear);
-        //cout <<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl;
+        system("clear");
     }
     return 0;
 }
 
 
 int Interface::client() {
-    string macAddress = Utils::getMacAddress();
-    string ipAddress = Utils::getIPAddress();
+    string macAddress = getMacAddress();
+    string ipAddress = getIPAddress();
 
     // Testar isso ai 
     
     cout <<"You are a Client" <<endl<<" MAC Adress:"<<macAddress<<" IP Adress: "<<ipAddress<<endl; 
-
-    //system(clear);
-    //cout <<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl;
     return 0;
 }
 
