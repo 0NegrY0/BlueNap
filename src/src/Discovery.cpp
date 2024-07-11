@@ -98,7 +98,7 @@ int Discovery::client() {
     memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(PORT_DISCOVERY);
-    serverAddr.sin_addr.s_addr = INADDR_BROADCAST;
+    serverAddr.sin_addr.s_addr = (in_addr_t) INADDR_BROADCAST;
 
     while (true) {
         if (!isDiscovered) { // Check if the computer has not been discovered yet
