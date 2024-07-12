@@ -64,10 +64,10 @@ int Discovery::server() {
 
             strcpy(buffer, DISCOVERY_RESPONSE);
 
-            int sockfd2 = createSocket();
+            //int sockfd2 = createSocket(); //Ocorrem diferentes comportamentos se criamos o socketfd2 ou se usamos o que ja existe (sockfd1)
             struct sockaddr_in testeAddr = configureAdress(inet_ntoa(clientAddr.sin_addr), clientAddr.sin_port);
             
-            sendto(sockfd2, buffer, strlen(buffer), 0, (struct sockaddr*)&testeAddr, sizeof(testeAddr));
+            sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&testeAddr, sizeof(testeAddr));
         } 
 
     }
@@ -92,7 +92,7 @@ int Discovery::client() {
     memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(PORT_DISCOVERY);
-    serverAddr.sin_addr.s_addr = htonl(INADDR_BROADCAST);
+    serverAddr.sin_addr.s_addr = inet_addr(BROADCAST_IP);
 
     string message = DISCOVERY_MESSAGE + string(" MAC- ") + getMacAddress();
     snprintf(buffer, MAX_BUFFER_SIZE, "%s", message.c_str());
@@ -119,7 +119,6 @@ int Discovery::client() {
                 mtx.unlock();
                 break;
             }  
-        sleep(10);
     }
      
     close(sockfd);

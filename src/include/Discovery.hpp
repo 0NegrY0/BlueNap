@@ -7,7 +7,7 @@
 #define MAX_BUFFER_SIZE 1024
 #define DISCOVERY_MESSAGE "wakeywakey"
 #define DISCOVERY_RESPONSE "Discovered"
-#define INADDR_BROADCAST 0x3B6E6618D7           //255.255.255.255
+#define BROADCAST_IP "255.255.255.255"
 
 using namespace std;
 
