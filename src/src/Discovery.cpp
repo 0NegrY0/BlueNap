@@ -37,7 +37,6 @@ int Discovery::server() {
             cerr << "Error in recvfrom()" << endl;
             continue;
         }
-        cout << "Received discovery message from: " << inet_ntoa(clientAddr.sin_addr) << endl;
 
         if (isDiscoveryMessage(buffer)) {
             cout << "Received discovery message from: " << inet_ntoa(clientAddr.sin_addr) << endl;
@@ -64,7 +63,11 @@ int Discovery::server() {
             mtx.unlock();
 
             strcpy(buffer, DISCOVERY_RESPONSE);
-            sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, sizeof(clientAddr));
+
+            int sockfd2 = createSocket();
+            struct sockaddr_in testeAddr = configureAdress(inet_ntoa(clientAddr.sin_addr), clientAddr.sin_port);
+            
+            sendto(sockfd2, buffer, strlen(buffer), 0, (struct sockaddr*)&testeAddr, sizeof(testeAddr));
         } 
 
     }
@@ -98,21 +101,24 @@ int Discovery::client() {
         if (sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, (socklen_t)sizeof(serverAddr)) == -1) {
             std::cerr << "Erro ao enviar: " << strerror(errno) << std::endl;
         }
-        int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, (socklen_t*)sizeof(serverAddr));
+        int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, (socklen_t*)sizeof(serverAddr)); // o erro está aqui
         if (bytesReceived < 0) {
             if (isTimeoutError()) {
-                //cout << "No response from server" << endl;
+                cout << "No response from server" << endl;
                 continue;
             }
+            cout << "deu ruim";
             break;
         }
-        else if (strcmp(buffer, DISCOVERY_RESPONSE) == 0) {
-            mtx.lock();
-            serverIp = inet_ntoa(serverAddr.sin_addr);
-            serverPort = serverAddr.sin_port;
-            mtx.unlock();
-            break;
-        }  
+        else 
+            cout << "Fui Descobertooooooooooooo" << endl;
+            if (strcmp(buffer, DISCOVERY_RESPONSE) == 0) {
+                mtx.lock();
+                serverIp = inet_ntoa(serverAddr.sin_addr);
+                serverPort = serverAddr.sin_port;
+                mtx.unlock();
+                break;
+            }  
         sleep(10);
     }
      

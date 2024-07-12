@@ -14,29 +14,18 @@ using namespace std;
 int Monitoring::server() {
 
     char buffer[MAX_BUFFER_SIZE];
-
-    int sockfd = createSocket();
-
-    struct sockaddr_in serverAddr;
-    memset(&serverAddr, 0, sizeof(serverAddr));
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_addr.s_addr = INADDR_ANY;
-    serverAddr.sin_port = htons(PORT_DISCOVERY);
-
-    if (bind(sockfd, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
-        cerr << "Error in bind()" << endl;
-        close(sockfd);
-        return -1;
-    }
-    setSocketTimeout(sockfd, TIMEOUT_SEC);
     
     while (true) {
         for (int i = 1; i < computers.size(); i++) {
-            struct sockaddr_in clientAddr = configureAdress(computers[i].ipAddress, 40030);
+            int sockfd = createSocket();
+
+            struct sockaddr_in clientAddr = configureAdress(computers[i].ipAddress, PORT_DISCOVERY);
             if (clientAddr.sin_family == AF_UNSPEC) {
                 cout << "Erro ao configurar o socket" << endl;
                 return -1;
             }
+
+            setSocketTimeout(sockfd, TIMEOUT_SEC);
 
             strcpy(buffer, MONITORING_MESSAGE);
 
@@ -51,6 +40,7 @@ int Monitoring::server() {
                 }
                 else {
                     std::cerr << "Error in recvfrom()" << std::endl;
+                    close(sockfd);
                     continue;
                 }
             }
@@ -61,24 +51,17 @@ int Monitoring::server() {
                     mtx.unlock();
                 }
             }
+            close(sockfd);
         }
     }
-
-    close(sockfd);
 }
     
 int Monitoring::client() {
-    cout << "Server Port: " << serverPort << endl;
-    int sockfd = createSocket();
-
-    if (sockfd < 0) {
-        cout << "Erro ao criar o socket" << endl;
-        return -1;
-    }
-
     while (serverIp.empty());
 
+    int sockfd = createSocket();
     struct sockaddr_in serverAddr = configureAdress(serverIp, serverPort);
+
     if (serverAddr.sin_family == AF_UNSPEC) {
         cout << "Erro ao configurar o socket" << endl;
         return -1;
