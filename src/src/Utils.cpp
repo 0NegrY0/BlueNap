@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <net/if.h> // Include the missing header file
 
 using namespace std;
 
@@ -53,30 +54,55 @@ string Utils::getIPAddress() {
     return host;
 }
 
+
 string Utils::getMacAddress() {
-    for (const auto& entry : fs::directory_iterator("/sys/class/net/")) {
-        string interface = entry.path().filename();
+    struct ifaddrs *ifaddr, *ifa;
+    if (getifaddrs(&ifaddr) == -1) {
+        perror("getifaddrs");
+        throw runtime_error("Failed to get network interfaces.");
+    }
 
-        ifstream file("/sys/class/net/" + interface + "/address");
-        if (file.is_open()) {
-            stringstream buffer;
-            buffer << file.rdbuf();
-            string macAddress = buffer.str();
+    string macAddress;
+    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr == NULL || ifa->ifa_addr->sa_family != AF_PACKET) {
+            continue;
+        }
 
-            // Remove trailing newline
-            if (!macAddress.empty() && macAddress[macAddress.length() - 1] == '\n') {
-                macAddress.erase(macAddress.length() - 1);
-            }
+        string interfaceName = ifa->ifa_name;
+        if (interfaceName == "lo") {
+            continue; // Ignora a interface loopback
+        }
 
-            if (!macAddress.empty()) {
-                return macAddress;
+
+        if (ifa->ifa_flags & IFF_UP && ifa->ifa_flags & IFF_RUNNING) {
+            ifstream file("/sys/class/net/" + interfaceName + "/address");
+            if (file.is_open()) {
+                stringstream buffer;
+                buffer << file.rdbuf();
+                macAddress = buffer.str();
+
+                // Remove trailing newline
+                if (!macAddress.empty() && macAddress[macAddress.length() - 1] == '\n') {
+                    macAddress.erase(macAddress.length() - 1);
+                }
+
+                if (!macAddress.empty()) {
+                    break; // Encontrou uma interface válida com endereço MAC
+                }
+            } else {
+                cerr << "Failed to open file for interface: " << interfaceName << endl;
             }
         }
     }
 
-    throw runtime_error("Failed to find a network interface with a MAC address.");
-}
+    freeifaddrs(ifaddr);
 
+    if (macAddress.empty()) {
+        throw runtime_error("Failed to find a network interface with a MAC address.");
+    }
+
+    return macAddress;
+}
 string Utils::getManagerIp(const vector<Computer>& computers) {
     cout << computers.size() << endl;
     for (int i = 0; i < computers.size(); i++) {
