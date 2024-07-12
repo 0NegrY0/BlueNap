@@ -15,14 +15,24 @@ int Monitoring::server() {
 
     char buffer[MAX_BUFFER_SIZE];
 
-    int ports;  //TODO
-
     int sockfd = createSocket();
-    setSocketTimeout(sockfd, TIMEOUT_SEC);
 
+    struct sockaddr_in serverAddr;
+    memset(&serverAddr, 0, sizeof(serverAddr));
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_addr.s_addr = INADDR_ANY;
+    serverAddr.sin_port = htons(PORT_DISCOVERY);
+
+    if (bind(sockfd, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
+        cerr << "Error in bind()" << endl;
+        close(sockfd);
+        return -1;
+    }
+    setSocketTimeout(sockfd, TIMEOUT_SEC);
+    
     while (true) {
-        for (int i = 0; i < computers.size(); i++) {
-            struct sockaddr_in clientAddr = configureAdress(computers[i].ipAddress, ports);
+        for (int i = 1; i < computers.size(); i++) {
+            struct sockaddr_in clientAddr = configureAdress(computers[i].ipAddress, 40030);
             if (clientAddr.sin_family == AF_UNSPEC) {
                 cout << "Erro ao configurar o socket" << endl;
                 return -1;
@@ -34,7 +44,7 @@ int Monitoring::server() {
 
             int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, (socklen_t*)sizeof(clientAddr));
             if (bytesReceived < 0) {
-                if (errno == EAGAIN || errno == EWOULDBLOCK) { //PC ta dormindo
+                if (isTimeoutError()) {
                     mtx.lock();
                     computers[i].isAwake = false;
                     mtx.unlock();
@@ -58,18 +68,18 @@ int Monitoring::server() {
 }
     
 int Monitoring::client() {
+    cout << "Server Port: " << serverPort << endl;
     int sockfd = createSocket();
 
-    int ports;  //TODO
-
-    string managerIp = getManagerIp(computers);
-    if (managerIp == "") {
-        cerr << "Erro ao obter o IP do gerenciador" << endl;
+    if (sockfd < 0) {
+        cout << "Erro ao criar o socket" << endl;
         return -1;
     }
 
-    struct sockaddr_in managerAddr = configureAdress(managerIp, ports);
-    if (managerAddr.sin_family == AF_UNSPEC) {
+    while (serverIp.empty());
+
+    struct sockaddr_in serverAddr = configureAdress(serverIp, serverPort);
+    if (serverAddr.sin_family == AF_UNSPEC) {
         cout << "Erro ao configurar o socket" << endl;
         return -1;
     }
@@ -77,17 +87,17 @@ int Monitoring::client() {
     char buffer[MAX_BUFFER_SIZE];
 
     while (true) {
-        int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&managerAddr, (socklen_t*)sizeof(managerAddr));
+        int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, (socklen_t*)sizeof(serverAddr));
         if (bytesReceived < 0) {
             std::cerr << "Error in recvfrom()" << std::endl;
             continue;
         }
-        else {
-            if (strcmp(buffer, MONITORING_MESSAGE) == 0) {
-                strcpy(buffer, MONITORING_MESSAGE_RESPONSE);
-                sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&managerAddr, sizeof(managerAddr));
-            }
+
+        if (strcmp(buffer, MONITORING_MESSAGE) == 0) {
+            strcpy(buffer, MONITORING_MESSAGE_RESPONSE);
+            sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
         }
+        
     }
 }
 

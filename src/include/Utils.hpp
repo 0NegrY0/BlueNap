@@ -8,6 +8,7 @@
 
 #define MAX_BUFFER_SIZE 1024
 #define TIMEOUT_SEC 5
+#define PORT_DISCOVERY 40000
 
 using namespace std;
 
@@ -23,7 +24,8 @@ struct Computer {
 
 extern vector<Computer> computers;
 extern mutex mtx;
-
+extern string serverIp;
+extern int serverPort;
 class Utils {
     public:
         string getIPAddress();
@@ -32,6 +34,7 @@ class Utils {
         int createSocket();
         void setSocketTimeout(int sockfd, int sec);
         struct sockaddr_in configureAdress(const string& ip, int ports);
+        bool isTimeoutError();
 };
 
 #endif

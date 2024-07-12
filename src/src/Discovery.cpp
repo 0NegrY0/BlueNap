@@ -43,22 +43,21 @@ int Discovery::server() {
             cout << "Received discovery message from: " << inet_ntoa(clientAddr.sin_addr) << endl;
 
             string message(buffer);
-            string ip, mac;
-            size_t ipPos = message.find("IP:");
-            size_t macPos = message.find(", MAC:");
-            if (ipPos != string::npos && macPos != string::npos) {
-                ip = message.substr(ipPos + 4, macPos - (ipPos + 4));
-                mac = message.substr(macPos + 7);
-            } else {
+            size_t macPos = message.find("MAC- ");
+
+            if (macPos == string::npos) {
                 cerr << "Invalid discovery message format" << endl;
                 continue;
             }
+                
+            string mac = message.substr(macPos + 5, 17);
 
             Computer comp;
             comp.macAddress = mac;
-            comp.ipAddress = ip;
+            comp.ipAddress = inet_ntoa(clientAddr.sin_addr);
             comp.id = computers.size() + 1;
             comp.isServer = false;
+            comp.isAwake = true;
 
             mtx.lock();
             computers.push_back(comp);
@@ -75,38 +74,43 @@ int Discovery::server() {
 }
 
 int Discovery::client() {
-    int sockfd;
     struct sockaddr_in serverAddr;
     char buffer[MAX_BUFFER_SIZE];
 
-    // Create UDP socket for discovery
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        cerr << "Error in socket creation" << endl;
+    int sockfd = createSocket();
+    setSocketTimeout(sockfd, TIMEOUT_SEC);
+
+    int broadcastPermission = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, (void *)&broadcastPermission, sizeof(broadcastPermission)) < 0) {
+        cerr << "Error setting socket to broadcast mode" << endl;
         return -1;
     }
 
-    setSocketTimeout(sockfd, TIMEOUT_SEC);
-
-    // Configure server address
     memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(PORT_DISCOVERY);
-    serverAddr.sin_addr.s_addr = (in_addr_t) INADDR_BROADCAST;
+    serverAddr.sin_addr.s_addr = htonl(INADDR_BROADCAST);
 
-    sprintf(buffer, "%s IP:%s, MAC:%s", DISCOVERY_MESSAGE, getIPAddress(), getMacAddress());
+    string message = DISCOVERY_MESSAGE + string(" MAC- ") + getMacAddress();
+    snprintf(buffer, MAX_BUFFER_SIZE, "%s", message.c_str());
 
     while (true) {
-        sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, (socklen_t)sizeof(serverAddr));
+        if (sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, (socklen_t)sizeof(serverAddr)) == -1) {
+            std::cerr << "Erro ao enviar: " << strerror(errno) << std::endl;
+        }
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, (socklen_t*)sizeof(serverAddr));
         if (bytesReceived < 0) {
             if (isTimeoutError()) {
-                cout << "No response from server" << endl;
+                //cout << "No response from server" << endl;
                 continue;
             }
             break;
         }
         else if (strcmp(buffer, DISCOVERY_RESPONSE) == 0) {
-            cout << "Received discovery message from: " << inet_ntoa(serverAddr.sin_addr) << endl;
+            mtx.lock();
+            serverIp = inet_ntoa(serverAddr.sin_addr);
+            serverPort = serverAddr.sin_port;
+            mtx.unlock();
             break;
         }  
         sleep(10);
@@ -118,8 +122,4 @@ int Discovery::client() {
 
 bool Discovery::isDiscoveryMessage(char* buffer) {
     return strstr(buffer, DISCOVERY_MESSAGE) != NULL;
-}
-
-bool Discovery::isTimeoutError() {
-    return errno == EAGAIN || errno == EWOULDBLOCK;
 }

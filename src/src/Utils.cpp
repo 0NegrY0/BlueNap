@@ -7,11 +7,14 @@
 #include <netdb.h>
 #include <filesystem>
 #include <fstream>
+#include <string>
 
 using namespace std;
 
 vector<Computer> computers;
 mutex mtx;
+string serverIp = "";
+int serverPort = 0;
         
 string Utils::getIPAddress() {
     struct ifaddrs *ifaddr, *ifa;
@@ -114,4 +117,8 @@ struct sockaddr_in Utils::configureAdress(const string& ip, int port) {
         Addr.sin_family = AF_UNSPEC;
     }
     return Addr;
+}
+
+bool Utils::isTimeoutError() {
+    return errno == EAGAIN || errno == EWOULDBLOCK;
 }
