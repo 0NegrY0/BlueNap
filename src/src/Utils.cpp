@@ -75,7 +75,8 @@ string Utils::getMacAddress() {
 }
 
 string Utils::getManagerIp(const vector<Computer>& computers) {
-    for (size_t i = 0; i < computers.size(); ++i) {
+    cout << computers.size() << endl;
+    for (int i = 0; i < computers.size(); i++) {
         if (computers[i].isServer) {
             return computers[i].ipAddress;
         }
@@ -86,7 +87,7 @@ string Utils::getManagerIp(const vector<Computer>& computers) {
 int Utils::createSocket() {
     int sockfd;
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        cerr << "Erro na criação do socket" << endl;
+        cerr << "Error in socket creation" << endl;
         return -1;
     }
     return sockfd;
@@ -101,7 +102,7 @@ void Utils::setSocketTimeout(int sockfd, int sec) {
     }
 }
 
-struct sockaddr_in Utils::configureServerAddress(const string& ip, int port) {
+struct sockaddr_in Utils::configureAdress(const string& ip, int port) {
     struct sockaddr_in Addr;
     memset(&Addr, 0, sizeof(Addr));
     Addr.sin_family = AF_INET;

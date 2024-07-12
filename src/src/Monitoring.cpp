@@ -22,7 +22,7 @@ int Monitoring::server() {
 
     while (true) {
         for (int i = 0; i < computers.size(); i++) {
-            struct sockaddr_in clientAddr = configureServerAddress(computers[i].ipAddress, ports);
+            struct sockaddr_in clientAddr = configureAdress(computers[i].ipAddress, ports);
             if (clientAddr.sin_family == AF_UNSPEC) {
                 cout << "Erro ao configurar o socket" << endl;
                 return -1;
@@ -68,7 +68,7 @@ int Monitoring::client() {
         return -1;
     }
 
-    struct sockaddr_in managerAddr = configureServerAddress(managerIp, ports);
+    struct sockaddr_in managerAddr = configureAdress(managerIp, ports);
     if (managerAddr.sin_family == AF_UNSPEC) {
         cout << "Erro ao configurar o socket" << endl;
         return -1;

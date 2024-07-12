@@ -7,6 +7,7 @@
 #include <filesystem>
 
 #define MAX_BUFFER_SIZE 1024
+#define TIMEOUT_SEC 5
 
 using namespace std;
 
@@ -30,7 +31,7 @@ class Utils {
         string getManagerIp(const vector<Computer>& computers);
         int createSocket();
         void setSocketTimeout(int sockfd, int sec);
-        struct sockaddr_in configureServerAddress(const string& ip, int ports);
+        struct sockaddr_in configureAdress(const string& ip, int ports);
 };
 
 #endif

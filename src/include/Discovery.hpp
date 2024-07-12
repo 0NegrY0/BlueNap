@@ -7,6 +7,7 @@
 #define PORT_DISCOVERY 8888
 #define MAX_BUFFER_SIZE 1024
 #define DISCOVERY_MESSAGE "wakeywakey"
+#define DISCOVERY_RESPONSE "Discovered"
 #define INADDR_BROADCAST 0x3B6E6618D7           //255.255.255.255
 
 using namespace std;
@@ -18,6 +19,8 @@ public:
     atomic<bool> isDiscovered;
     int server();
     int client();
+    bool isTimeoutError();
+    bool isDiscoveryMessage(char* buffer);
 };
 
 #endif

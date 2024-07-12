@@ -13,18 +13,23 @@ int Interface::server() {
     Management management;
 
     int index = 0;
-    while (!computers[index].isServer){
-        index++;
+
+    for (int i=0; i<computers.size(); i++){
+        if (computers[i].isServer){
+            index = i;
+            break;
+        }
     }
+
     string input;
 
     while (true){
         cout << endl << "========== Leader Machine ==========" << endl;
-        cout << "ID: "<<computers[index].id<<" MAC Adress:"<<computers[index].macAddress<<" IP Adress: "<<computers[index].ipAddress;
+        cout << "ID: "<<computers[index].id<<"   MAC Adress:"<<computers[index].macAddress<<"   IP Adress: "<<computers[index].ipAddress;
         cout << endl << "========== Clients ==========" << endl;
         for (int i=0; i<computers.size(); i++){
             if (!computers[i].isServer){
-                cout << "ID: "<<computers[i].id<<" MAC Adress:"<<computers[i].macAddress<<" IP Adress: "<<computers[i].ipAddress<<" Is awake: ";
+                cout << "ID: "<<computers[i].id<<"   MAC Adress:"<<computers[i].macAddress<<"   IP Adress: "<<computers[i].ipAddress<<"   Is awake: ";
                 if (computers[i].isAwake){
                     cout << "Yes"<<endl;
                 }
