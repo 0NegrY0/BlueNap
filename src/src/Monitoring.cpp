@@ -58,7 +58,7 @@ int Monitoring::server() {
     
 int Monitoring::client() {
     while (serverIp.empty());
-
+    
     int sockfd = createSocket();
     struct sockaddr_in serverAddr = configureAdress(serverIp, serverPort);
 
@@ -68,7 +68,7 @@ int Monitoring::client() {
     }
 
     char buffer[MAX_BUFFER_SIZE];
-
+    
     while (true) {
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, (socklen_t*)sizeof(serverAddr));
         if (bytesReceived < 0) {
@@ -83,5 +83,3 @@ int Monitoring::client() {
         
     }
 }
-
-
