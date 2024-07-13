@@ -18,18 +18,22 @@ int Monitoring::server() {
     while (true) {
         for (int i = 1; i < computers.size(); i++) {
             int sockfd = createSocket();
-
-            struct sockaddr_in clientAddr = configureAdress(computers[i].ipAddress, PORT_DISCOVERY);
-            if (clientAddr.sin_family == AF_UNSPEC) {
-                cout << "Erro ao configurar o socket" << endl;
-                return -1;
+            struct sockaddr_in clientAddr;
+            socklen_t addrLen = sizeof(clientAddr);
+            memset(&clientAddr, 0, sizeof(clientAddr));
+            clientAddr.sin_family = AF_INET;
+            clientAddr.sin_port = htons(computers[i].port);
+            if (inet_pton(AF_INET, computers[i].ipAddress.c_str(), &clientAddr.sin_addr) <= 0) {
+                std::cerr << "Endereço inválido/Não suportado." << std::endl;
+                close(sockfd);
+                exit(EXIT_FAILURE);
             }
 
             setSocketTimeout(sockfd, TIMEOUT_SEC);
 
             strcpy(buffer, MONITORING_MESSAGE);
 
-            sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, sizeof(clientAddr));
+            sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, addrLen);
 
             int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, (socklen_t*)sizeof(clientAddr));
             if (bytesReceived < 0) {
@@ -39,7 +43,7 @@ int Monitoring::server() {
                     mtx.unlock();
                 }
                 else {
-                    std::cerr << "Error in recvfrom()" << std::endl;
+                    cerr << "aaaaaaaaaaaaaError in recvfrom()" << strerror(errno) << endl;;
                     close(sockfd);
                     continue;
                 }
@@ -53,33 +57,52 @@ int Monitoring::server() {
             }
             close(sockfd);
         }
+        sleep(5);
     }
 }
     
 int Monitoring::client() {
-    while (serverIp.empty());
-    
-    int sockfd = createSocket();
-    struct sockaddr_in serverAddr = configureAdress(serverIp, serverPort);
 
-    if (serverAddr.sin_family == AF_UNSPEC) {
-        cout << "Erro ao configurar o socket" << endl;
+    while (serverIp.empty());
+
+    int sockfd = createSocket();
+
+    struct sockaddr_in localAddr;
+    memset(&localAddr, 0, sizeof(localAddr));
+    localAddr.sin_family = AF_INET;
+    localAddr.sin_addr.s_addr = INADDR_ANY;
+    localAddr.sin_port = htons(myPort);
+
+    if (bind(sockfd, (struct sockaddr*)&localAddr, sizeof(localAddr)) < 0) {
+        cerr << "Error in bind(): " << strerror(errno) << endl;
+        close(sockfd);
         return -1;
+    }
+
+    struct sockaddr_in serverAddr;
+    socklen_t serverLen = sizeof(serverAddr);
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(PORT_DISCOVERY);
+    if (inet_pton(AF_INET, serverIp.c_str(), &serverAddr.sin_addr) <= 0) {
+        std::cerr << "Endereço inválido/Não suportado." << std::endl;
+        close(sockfd);
+        exit(EXIT_FAILURE);
     }
 
     char buffer[MAX_BUFFER_SIZE];
     
     while (true) {
-        int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, (socklen_t*)sizeof(serverAddr));
+        cout << "oiii";
+        int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, &serverLen);
         if (bytesReceived < 0) {
             std::cerr << "Error in recvfrom()" << std::endl;
             continue;
         }
-
+        cout << "vamos entrar";
         if (strcmp(buffer, MONITORING_MESSAGE) == 0) {
+            cout << "entramos";
             strcpy(buffer, MONITORING_MESSAGE_RESPONSE);
-            sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
-        }
-        
+            cout << "Enviei " << sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
+        } 
     }
 }

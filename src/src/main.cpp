@@ -31,6 +31,7 @@ int main() {
             comp.ipAddress = discovery->getIPAddress();
             comp.id = 1;
             comp.isServer = true;
+            comp.port = PORT_DISCOVERY;
             computers.push_back(comp);
 
             threads.push_back(thread(&Discovery::server, discovery.get()));

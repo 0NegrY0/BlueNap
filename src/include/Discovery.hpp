@@ -19,6 +19,7 @@ public:
     int server();
     int client();
     bool isDiscoveryMessage(char* buffer);
+    bool isDiscoveryResponse(char* buffer);
 };
 
 #endif

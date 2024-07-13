@@ -9,6 +9,7 @@
 #define MAX_BUFFER_SIZE 1024
 #define TIMEOUT_SEC 5
 #define PORT_DISCOVERY 40000
+#define TEST_PORT 40001
 
 using namespace std;
 
@@ -20,12 +21,15 @@ struct Computer {
     int id;
     bool isServer;
     bool isAwake;
+    int port;
 };
 
 extern vector<Computer> computers;
 extern mutex mtx;
 extern string serverIp;
 extern int serverPort;
+extern int myPort;
+
 class Utils {
     public:
         string getIPAddress();

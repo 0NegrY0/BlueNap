@@ -30,7 +30,7 @@ int Discovery::server() {
         memset(buffer, 0, sizeof(buffer));
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
         if (bytesReceived < 0) {
-            cerr << "Error in recvfrom(): " << strerror(errno) << endl;
+            cerr << "bbbbbbbbbbbbbError in recvfrom(): " << strerror(errno) << endl;
             continue;
         }
 
@@ -51,21 +51,25 @@ int Discovery::server() {
             comp.id = computers.size() + 1;
             comp.isServer = false;
             comp.isAwake = true;
+            comp.port = PORT_DISCOVERY + comp.id;
 
             mtx.lock();
             computers.push_back(comp);
             mtx.unlock();
 
-            strcpy(buffer, DISCOVERY_RESPONSE);
+            string response = DISCOVERY_RESPONSE + string("Port:") + to_string(comp.port);
+            strcpy(buffer, "");
+            snprintf(buffer, MAX_BUFFER_SIZE, "%s", response.c_str());
 
-            cout << "Sending discovery response to: " << inet_ntoa(clientAddr.sin_addr) << ":" << ntohs(clientAddr.sin_port) << endl;
+            //cout << "Sending discovery response to: " << inet_ntoa(clientAddr.sin_addr) << ":" << ntohs(clientAddr.sin_port) << endl;
 
             // Send response back to the client's port
             if (sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen) < 0) {
-                cerr << "Error in sendto(): " << strerror(errno) << endl;
+                //cerr << "Error in sendto(): " << strerror(errno) << endl;
             } else {
-                cout << "Response sent successfully to: " << inet_ntoa(clientAddr.sin_addr) << ":" << ntohs(clientAddr.sin_port) << endl;
+                //cout << "Response sent successfully to: " << inet_ntoa(clientAddr.sin_addr) << ":" << ntohs(clientAddr.sin_port) << endl;
             }
+
         }
     }
 
@@ -113,9 +117,7 @@ int Discovery::client() {
     while (true) {
         if (sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, addrLen) == -1) {
             cerr << "Error sending discovery message: " << strerror(errno) << endl;
-        } else {
-            cout << "Discovery message sent to broadcast address" << endl;
-        }
+        } 
 
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&responseAddr, &responseAddrLen);
         if (bytesReceived < 0) {
@@ -125,14 +127,25 @@ int Discovery::client() {
             }
             cerr << "Error in recvfrom(): " << strerror(errno) << endl;
             break;
-        } else {
-            cout << "Received response from server: " << inet_ntoa(responseAddr.sin_addr) << ":" << ntohs(responseAddr.sin_port) << endl;
-            buffer[bytesReceived] = '\0';  // Null-terminate the received data
-            if (strcmp(buffer, DISCOVERY_RESPONSE) == 0) {
+        } 
+        else {
+            if (isDiscoveryResponse(buffer)) {
+                string message2(buffer);
+                size_t portPos = message2.find("Port:");
+
+                if (portPos == string::npos) {
+                    cerr << "Invalid discovery message format" << endl;
+                    continue;
+                }
+
+                int port = stoi(message2.substr(portPos + strlen("Port:"), 5));
                 mtx.lock();
                 serverIp = inet_ntoa(responseAddr.sin_addr);
+                cout << serverIp;
                 serverPort = ntohs(responseAddr.sin_port);
+                myPort = port;
                 mtx.unlock();
+
                 break;
             }
         }
@@ -144,4 +157,8 @@ int Discovery::client() {
 
 bool Discovery::isDiscoveryMessage(char* buffer) {
     return strstr(buffer, DISCOVERY_MESSAGE) != NULL;
+}
+
+bool Discovery:: isDiscoveryResponse(char* buffer) {
+    return strstr(buffer, DISCOVERY_RESPONSE) != NULL;
 }

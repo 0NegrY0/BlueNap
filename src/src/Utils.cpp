@@ -15,7 +15,8 @@ vector<Computer> computers;
 mutex mtx;
 string serverIp = "";
 int serverPort = 0;
-        
+int myPort = 0;
+
 string Utils::getIPAddress() {
     struct ifaddrs *ifaddr, *ifa;
     int family, s;
