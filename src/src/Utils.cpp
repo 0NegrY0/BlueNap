@@ -86,7 +86,7 @@ string Utils::getMacAddress() {
 
 string Utils::getManagerIp(const vector<Computer>& computers) {
     cout << computers.size() << endl;
-    for (int i = 0; i < computers.size(); i++) {
+    for (size_t i = 0; i < computers.size(); i++) {
         if (computers[i].isServer) {
             return computers[i].ipAddress;
         }
@@ -144,4 +144,5 @@ int Utils::listenAtPort(int sockfd, int port) {
         close(sockfd);
         return -1;
     }
+    return 0;
 }

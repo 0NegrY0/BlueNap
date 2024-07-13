@@ -16,7 +16,7 @@ int Monitoring::server() {
     char buffer[MAX_BUFFER_SIZE];
     
     while (true) {
-        for (int i = 1; i < computers.size(); i++) {
+        for (size_t i = 1; i < computers.size(); i++) {
             int sockfd = createSocket();
             setSocketTimeout(sockfd, TIMEOUT_SEC);
 

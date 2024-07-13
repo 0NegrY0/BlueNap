@@ -8,7 +8,7 @@
 using namespace std;
 
 int Discovery::server() {
-    struct sockaddr_in serverAddr, clientAddr;
+    struct sockaddr_in clientAddr;
     socklen_t clientLen = sizeof(clientAddr);
     char buffer[MAX_BUFFER_SIZE];
     int sockfd = createSocket();
@@ -65,7 +65,7 @@ int Discovery::server() {
 }
 
 int Discovery::client() {
-    struct sockaddr_in serverAddr, localAddr, responseAddr;
+    struct sockaddr_in serverAddr, responseAddr;
     char buffer[MAX_BUFFER_SIZE];
 
     int sockfd = createSocket();

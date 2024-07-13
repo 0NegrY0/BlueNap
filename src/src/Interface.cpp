@@ -14,7 +14,7 @@ int Interface::server() {
 
     int index = 0;
 
-    for (int i=0; i<computers.size(); i++){
+    for (size_t i=0; i<computers.size(); i++){
         if (computers[i].isServer){
             index = i;
             break;
@@ -27,7 +27,7 @@ int Interface::server() {
         cout << endl << "============ Leader Machine ============" << endl;
         cout << "ID: "<<computers[index].id<<" \t\t MAC Adress:"<<computers[index].macAddress<<" \t\tIP Adress: "<<computers[index].ipAddress;
         cout << endl << "================ Clients ===============" << endl;
-        for (int i=0; i<computers.size(); i++){
+        for (size_t i=0; i<computers.size(); i++){
             if (!computers[i].isServer){
                 cout << "ID: "<<computers[i].id<<" \t\tMAC Adress:"<<computers[i].macAddress<<" \t\tIP Adress: "<<computers[i].ipAddress<<" \t\tIs awake: ";
                 if (computers[i].isAwake){
@@ -45,7 +45,7 @@ int Interface::server() {
             cout << "Enter the ID of the client you want to awake: ";
             getline(cin, input);
 
-            int id = stoi(input);
+            size_t id = stoi(input);
             
             if (id < 2 && id > computers.size()){
                 cout << "ID invalido";
