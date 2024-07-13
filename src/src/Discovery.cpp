@@ -13,16 +13,6 @@ int Discovery::server() {
     char buffer[MAX_BUFFER_SIZE];
     int sockfd = createSocket();
 
-    /*memset(&serverAddr, 0, sizeof(serverAddr));
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_addr.s_addr = INADDR_ANY;
-    serverAddr.sin_port = htons(PORT_DISCOVERY);
-
-    if (bind(sockfd, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
-        cerr << "Error in bind(): " << strerror(errno) << endl;
-        close(sockfd);
-        return -1;
-    }*/
     listenAtPort(sockfd, PORT_DISCOVERY);
 
     while (true) {
@@ -44,13 +34,26 @@ int Discovery::server() {
 
             string ip = inet_ntoa(clientAddr.sin_addr);
             string mac = message.substr(macPos + 5, 17);
-            Computer comp = createComputer(ip, mac);
 
-            mtx.lock();
-            computers.push_back(comp);
-            mtx.unlock();
+            int port;
+            
+            int computerId = isAlreadyDiscovered(ip);
+            if (computerId != -1) {
+                mtx.lock();
+                computers[computerId - 1].isAwake = true;
+                mtx.unlock();
+                port = computers[computerId - 1].port;
+            }
 
-            strcpy(buffer, setDiscoveryResponse(comp.port));
+            else {
+                Computer comp = createComputer(ip, mac);
+                mtx.lock();
+                computers.push_back(comp);
+                mtx.unlock();
+                port = comp.port;
+            }
+
+            strcpy(buffer, setDiscoveryResponse(port));
 
             sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
             
@@ -74,7 +77,6 @@ int Discovery::client() {
         return -1;
     }
 
-    // Bind to a random local port to receive the response
     listenAtPort(sockfd, 0);
 
     memset(&serverAddr, 0, sizeof(serverAddr));
@@ -146,6 +148,15 @@ Computer Discovery::createComputer(string clientIp, string clientMac) {
     comp.port = PORT_DISCOVERY + comp.id;
 
     return comp;
+}
+
+int Discovery::isAlreadyDiscovered(string clientIp) {
+    for (Computer c : computers) {
+        if (c.ipAddress == clientIp) {
+            return c.id;
+        }
+    }
+    return -1;
 }
 
 char* Discovery::setDiscoveryResponse(int clientPort) {

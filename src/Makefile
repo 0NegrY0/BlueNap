@@ -1,4 +1,4 @@
-CXX = g++
+CXX = g++ -g -Wall
 CXXFLAGS = -std=c++17
 LDFLAGS_MAIN = -pthread
 TARGET = BlueNap
