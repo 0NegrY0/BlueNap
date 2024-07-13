@@ -35,7 +35,9 @@ int Monitoring::server() {
 
             sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, addrLen);
 
-            int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, (socklen_t*)sizeof(clientAddr));
+            struct sockaddr_in fromAddr;
+            socklen_t fromAddrLen = sizeof(fromAddr);
+            int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&fromAddr, &fromAddrLen);
             if (bytesReceived < 0) {
                 if (isTimeoutError()) {
                     mtx.lock();
@@ -43,12 +45,13 @@ int Monitoring::server() {
                     mtx.unlock();
                 }
                 else {
-                    cerr << "aaaaaaaaaaaaaError in recvfrom()" << strerror(errno) << endl;;
+                    cerr << "Error in recvfrom(): " << strerror(errno) << endl;
                     close(sockfd);
                     continue;
                 }
             }
             else {
+                buffer[bytesReceived] = '\0'; // Adiciona um terminador nulo para evitar problemas com a comparação
                 if (strcmp(buffer, MONITORING_MESSAGE_RESPONSE) == 0) {
                     mtx.lock();
                     computers[i].isAwake = true;
@@ -59,6 +62,7 @@ int Monitoring::server() {
         }
         sleep(5);
     }
+    return 0; // Adiciona retorno para evitar warnings de compilação
 }
     
 int Monitoring::client() {
@@ -92,17 +96,18 @@ int Monitoring::client() {
     char buffer[MAX_BUFFER_SIZE];
     
     while (true) {
-        cout << "oiii";
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, &serverLen);
         if (bytesReceived < 0) {
-            std::cerr << "Error in recvfrom()" << std::endl;
+            std::cerr << "Error in recvfrom(): " << strerror(errno) << endl;
             continue;
         }
-        cout << "vamos entrar";
+
+        buffer[bytesReceived] = '\0'; // Adiciona um terminador nulo para evitar problemas com a comparação
         if (strcmp(buffer, MONITORING_MESSAGE) == 0) {
-            cout << "entramos";
             strcpy(buffer, MONITORING_MESSAGE_RESPONSE);
-            cout << "Enviei " << sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
-        } 
+            sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, serverLen);
+        }
     }
+    close(sockfd); // Adiciona fechamento do socket ao final do loop
+    return 0; // Adiciona retorno para evitar warnings de compilação
 }
