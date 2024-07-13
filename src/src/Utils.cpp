@@ -54,27 +54,32 @@ string Utils::getIPAddress() {
 }
 
 string Utils::getMacAddress() {
+    namespace fs = std::filesystem;
+
     for (const auto& entry : fs::directory_iterator("/sys/class/net/")) {
-        string interface = entry.path().filename();
+        std::string interface = entry.path().filename().string();
 
-        ifstream file("/sys/class/net/" + interface + "/address");
-        if (file.is_open()) {
-            stringstream buffer;
-            buffer << file.rdbuf();
-            string macAddress = buffer.str();
+        // Check if the interface name starts with "enp"
+        if (interface.substr(0, 1) == "e") {                    //enp or eth (if there is another interface with e were are done for...)     
+            std::ifstream file("/sys/class/net/" + interface + "/address");
+            if (file.is_open()) {
+                std::stringstream buffer;
+                buffer << file.rdbuf();
+                std::string macAddress = buffer.str();
 
-            // Remove trailing newline
-            if (!macAddress.empty() && macAddress[macAddress.length() - 1] == '\n') {
-                macAddress.erase(macAddress.length() - 1);
-            }
+                // Remove trailing newline
+                if (!macAddress.empty() && macAddress[macAddress.length() - 1] == '\n') {
+                    macAddress.erase(macAddress.length() - 1);
+                }
 
-            if (!macAddress.empty()) {
-                return macAddress;
+                if (!macAddress.empty()) {
+                    return macAddress;
+                }
             }
         }
     }
 
-    throw runtime_error("Failed to find a network interface with a MAC address.");
+    throw std::runtime_error("Failed to find a network interface with a MAC address.");
 }
 
 string Utils::getManagerIp(const vector<Computer>& computers) {
