@@ -20,6 +20,8 @@ public:
     int client();
     bool isDiscoveryMessage(char* buffer);
     bool isDiscoveryResponse(char* buffer);
+    char* setDiscoveryResponse(int clientPort);
+    struct Computer createComputer(string clientIp, string clienMac);
 };
 
 #endif

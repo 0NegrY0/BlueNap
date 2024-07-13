@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <unistd.h>
 
 using namespace std;
 
@@ -118,13 +119,29 @@ struct sockaddr_in Utils::configureAdress(const string& ip, int port) {
     Addr.sin_port = htons(port);
     if (inet_pton(AF_INET, ip.c_str(), &Addr.sin_addr) <= 0) {
         cerr << "Erro ao converter o endereço IP" << endl;
-        // Não é possível retornar -1, já que a função deve retornar uma estrutura sockaddr_in
-        // Vamos retornar uma estrutura inválida para indicar o erro
-        Addr.sin_family = AF_UNSPEC;
+        exit(EXIT_FAILURE);
     }
     return Addr;
 }
 
 bool Utils::isTimeoutError() {
     return errno == EAGAIN || errno == EWOULDBLOCK;
+}
+
+int Utils::listenAtPort(int sockfd, int port) {
+    if (port != 0) {
+        port = htons(port);
+    }
+
+    struct sockaddr_in Addr;
+    memset(&Addr, 0, sizeof(Addr));
+    Addr.sin_family = AF_INET;
+    Addr.sin_addr.s_addr = INADDR_ANY;
+    Addr.sin_port = port;
+
+    if (bind(sockfd, (struct sockaddr*)&Addr, sizeof(Addr)) < 0) {
+        cerr << "Error in bind(): " << strerror(errno) << endl;
+        close(sockfd);
+        return -1;
+    }
 }

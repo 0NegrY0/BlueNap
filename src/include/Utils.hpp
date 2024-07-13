@@ -39,6 +39,7 @@ class Utils {
         void setSocketTimeout(int sockfd, int sec);
         struct sockaddr_in configureAdress(const string& ip, int ports);
         bool isTimeoutError();
+        int listenAtPort(int socket, int port);
 };
 
 #endif

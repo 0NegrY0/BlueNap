@@ -13,7 +13,7 @@ int Discovery::server() {
     char buffer[MAX_BUFFER_SIZE];
     int sockfd = createSocket();
 
-    memset(&serverAddr, 0, sizeof(serverAddr));
+    /*memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_addr.s_addr = INADDR_ANY;
     serverAddr.sin_port = htons(PORT_DISCOVERY);
@@ -22,20 +22,18 @@ int Discovery::server() {
         cerr << "Error in bind(): " << strerror(errno) << endl;
         close(sockfd);
         return -1;
-    }
-
-    cout << "Discovery service listening on port " << PORT_DISCOVERY << endl;
+    }*/
+    listenAtPort(sockfd, PORT_DISCOVERY);
 
     while (true) {
         memset(buffer, 0, sizeof(buffer));
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
         if (bytesReceived < 0) {
-            cerr << "bbbbbbbbbbbbbError in recvfrom(): " << strerror(errno) << endl;
+            cerr << "Error in recvfrom(): " << strerror(errno) << endl;
             continue;
         }
 
         if (isDiscoveryMessage(buffer)) {
-            cout << "Received discovery message from: " << inet_ntoa(clientAddr.sin_addr) << ":" << ntohs(clientAddr.sin_port) << endl;
             string message(buffer);
             size_t macPos = message.find("MAC- ");
 
@@ -44,39 +42,24 @@ int Discovery::server() {
                 continue;
             }
 
+            string ip = inet_ntoa(clientAddr.sin_addr);
             string mac = message.substr(macPos + 5, 17);
-            Computer comp;
-            comp.macAddress = mac;
-            comp.ipAddress = inet_ntoa(clientAddr.sin_addr);
-            comp.id = computers.size() + 1;
-            comp.isServer = false;
-            comp.isAwake = true;
-            comp.port = PORT_DISCOVERY + comp.id;
+            Computer comp = createComputer(ip, mac);
 
             mtx.lock();
             computers.push_back(comp);
             mtx.unlock();
 
-            string response = DISCOVERY_RESPONSE + string("Port:") + to_string(comp.port);
-            strcpy(buffer, "");
-            snprintf(buffer, MAX_BUFFER_SIZE, "%s", response.c_str());
+            strcpy(buffer, setDiscoveryResponse(comp.port));
 
-            //cout << "Sending discovery response to: " << inet_ntoa(clientAddr.sin_addr) << ":" << ntohs(clientAddr.sin_port) << endl;
-
-            // Send response back to the client's port
-            if (sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen) < 0) {
-                //cerr << "Error in sendto(): " << strerror(errno) << endl;
-            } else {
-                //cout << "Response sent successfully to: " << inet_ntoa(clientAddr.sin_addr) << ":" << ntohs(clientAddr.sin_port) << endl;
-            }
-
+            sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
+            
         }
     }
 
     close(sockfd);
     return 0;
 }
-
 
 int Discovery::client() {
     struct sockaddr_in serverAddr, localAddr, responseAddr;
@@ -92,16 +75,7 @@ int Discovery::client() {
     }
 
     // Bind to a random local port to receive the response
-    memset(&localAddr, 0, sizeof(localAddr));
-    localAddr.sin_family = AF_INET;
-    localAddr.sin_addr.s_addr = INADDR_ANY;
-    localAddr.sin_port = 0;  // 0 allows the OS to choose a random available port
-
-    if (bind(sockfd, (struct sockaddr*)&localAddr, sizeof(localAddr)) < 0) {
-        cerr << "Error in bind(): " << strerror(errno) << endl;
-        close(sockfd);
-        return -1;
-    }
+    listenAtPort(sockfd, 0);
 
     memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
@@ -122,7 +96,7 @@ int Discovery::client() {
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&responseAddr, &responseAddrLen);
         if (bytesReceived < 0) {
             if (isTimeoutError()) {
-                cout << "No response from server" << endl;
+                //cout << "No response from server" << endl;
                 continue;
             }
             cerr << "Error in recvfrom(): " << strerror(errno) << endl;
@@ -141,7 +115,6 @@ int Discovery::client() {
                 int port = stoi(message2.substr(portPos + strlen("Port:"), 5));
                 mtx.lock();
                 serverIp = inet_ntoa(responseAddr.sin_addr);
-                cout << serverIp;
                 serverPort = ntohs(responseAddr.sin_port);
                 myPort = port;
                 mtx.unlock();
@@ -159,6 +132,27 @@ bool Discovery::isDiscoveryMessage(char* buffer) {
     return strstr(buffer, DISCOVERY_MESSAGE) != NULL;
 }
 
-bool Discovery:: isDiscoveryResponse(char* buffer) {
+bool Discovery::isDiscoveryResponse(char* buffer) {
     return strstr(buffer, DISCOVERY_RESPONSE) != NULL;
+}
+
+Computer Discovery::createComputer(string clientIp, string clientMac) {
+    Computer comp;
+    comp.macAddress = clientMac;
+    comp.ipAddress = clientIp;
+    comp.id = computers.size() + 1;
+    comp.isServer = false;
+    comp.isAwake = true;
+    comp.port = PORT_DISCOVERY + comp.id;
+
+    return comp;
+}
+
+char* Discovery::setDiscoveryResponse(int clientPort) {
+    char* discoveryMessage = new char[MAX_BUFFER_SIZE];
+
+    string response = DISCOVERY_RESPONSE + string("Port:") + to_string(clientPort);
+    snprintf(discoveryMessage, MAX_BUFFER_SIZE, "%s", response.c_str());
+
+    return discoveryMessage;
 }
