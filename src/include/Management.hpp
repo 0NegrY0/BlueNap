@@ -19,7 +19,6 @@ public:
 private:
     vector<Computer> computers;
     mutable mutex mtx;
-    condition_variable cv;
 };
 
 #endif

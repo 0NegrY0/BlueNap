@@ -7,9 +7,9 @@
 #include <algorithm>
 
 void Management::addComputer(const Computer& computer) {
-    lock_guard<mutex> lock(mtx);
+    mtx.lock();
     computers.push_back(computer);
-    cv.notify_all();
+    mtx.unlock();
 }
 
 void Management::removeComputer(int id) {
@@ -21,28 +21,17 @@ void Management::removeComputer(int id) {
         }
     }
     mtx.unlock();
-
 }
 
 void Management::updateStatus(int id, bool isAwake) {
-    lock_guard<mutex> lock(mtx);
+    mtx.lock();
     for (auto& computer : computers) {
         if (computer.id == id) {
             computer.isAwake = isAwake;
             break;
         }
     }
-    cv.notify_all();
-}
-
-void Management::handleStatusUpdate(int id, bool isAwake) {
-    updateStatus(id, isAwake);
-}
-
-vector<Computer> Management::getComputers() {
-    unique_lock<mutex> lock(mtx);
-    cv.wait(lock, [this] { return !computers.empty(); });
-    return computers;
+    mtx.unlock();
 }
 
 void Management::wakeOnLan(const string& macAddress, const string& ipAddress) {

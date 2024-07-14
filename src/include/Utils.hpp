@@ -10,6 +10,7 @@
 #define TIMEOUT_SEC 5
 #define PORT_DISCOVERY 40000
 #define TEST_PORT 40001
+#define EXIT_MESSAGE "KILLME"
 
 using namespace std;
 
@@ -32,6 +33,7 @@ extern int serverPort;
 extern int myPort;
 extern string serverHostName;
 extern string serverMac;
+extern bool shouldExit;
 class Utils {
     public:
         string getIPAddress();
@@ -42,6 +44,7 @@ class Utils {
         struct sockaddr_in configureAdress(const string& ip, int ports);
         bool isTimeoutError();
         int listenAtPort(int socket, int port);
+        int askToCloseConnection();
 };
 
 #endif

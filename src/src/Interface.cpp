@@ -111,8 +111,10 @@ int Interface::client() {
     gethostname(hostName, 1024);
     string input;
 
+    Management management;
+
     // Testar isso ai 
-    while (true){
+    while (!shouldExit){
         cout <<
         "........................=+++++...............\n"
         "........................@@@@@@-..............\n"
@@ -146,7 +148,10 @@ int Interface::client() {
         cout <<"Enter 'EXIT' to leave"<<endl;
         getline(cin, input);
         if (input == "EXIT"){
-            // FUNCAO CANCELAR O CPF
+            management.askToCloseConnection();
+            mtx.lock();
+            shouldExit = true;
+            mtx.unlock();
         }
         system("clear");
     }

@@ -1,4 +1,5 @@
 #include "../include/Discovery.hpp"
+#include "../include/Management.hpp"
 #include <iostream>
 #include <cstring>
 #include <cerrno>
@@ -23,6 +24,16 @@ int Discovery::server() {
             continue;
         }
 
+        if (isExitMessage(buffer)) {
+            Management management;
+            for (Computer c : computers) {
+                if (c.ipAddress == inet_ntoa(clientAddr.sin_addr)) {
+                    management.removeComputer(c.id);
+                    break;
+                }
+            }
+        }
+
         if (isDiscoveryMessage(buffer)) {
             string message(buffer);
             size_t macPos = message.find("MAC- ");
@@ -45,14 +56,12 @@ int Discovery::server() {
                 port = computers[computerId - 1].port;
             }
 
-            else {
-                Computer comp = createComputer(ip, mac);
-                mtx.lock();
-                computers.push_back(comp);
-                mtx.unlock();
-                port = comp.port;
-            }
-
+            Computer comp = createComputer(ip, mac);
+            mtx.lock();
+            computers.push_back(comp);
+            mtx.unlock();
+            port = comp.port;
+            
             strcpy(buffer, setDiscoveryResponse(port));
 
             sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
@@ -93,7 +102,7 @@ int Discovery::client() {
     socklen_t addrLen = sizeof(serverAddr);
     socklen_t responseAddrLen = sizeof(responseAddr);
 
-    while (true) {
+    while (!shouldExit) {
         if (sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, addrLen) == -1) {
             cerr << "Error sending discovery message: " << strerror(errno) << endl;
         } 
@@ -148,6 +157,10 @@ int Discovery::client() {
 
 bool Discovery::isDiscoveryMessage(char* buffer) {
     return strstr(buffer, DISCOVERY_MESSAGE) != NULL;
+}
+
+bool Discovery::isExitMessage(char* buffer) {
+    return strstr(buffer, EXIT_MESSAGE) != NULL;
 }
 
 bool Discovery::isDiscoveryResponse(char* buffer) {
