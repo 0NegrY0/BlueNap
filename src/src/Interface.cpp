@@ -21,10 +21,11 @@ int Interface::server() {
         }
     }
 
-    string input;
-
+    //hasUpdate
     while (true){
+
         cout << endl << "============ Leader Machine ============" << endl;
+        mtx.lock();
         cout << "ID: "<<computers[index].id<<"\t\tHostname: "<<computers[index].hostName<<"\t\tMAC Adress:"<<computers[index].macAddress<<"\t\tIP Adress: "<<computers[index].ipAddress;
         cout << endl << "================ Clients ===============" << endl;
         for (size_t i=0; i<computers.size(); i++){
@@ -38,20 +39,36 @@ int Interface::server() {
                 }
             }
         }
-        cout << endl << "You are the Leader" << endl; 
-        cout << "Enter 1 to wake a client, Enter anything to update" << endl; 
-        getline(cin, input);
-        if (input == "1"){
-            cout << "Enter the ID of the client you want to awake: ";
-            getline(cin, input);
+        mtx.unlock();
 
-            size_t id = stoi(input);
-            
-            if (id < 2 || id > computers.size()){
-                cout << "ID invalido";
-            }
-            else{
-                management.wakeOnLan(computers[id - 1].macAddress, computers[id - 1].ipAddress);
+        cout << endl << "You are the Leader" << endl; 
+        cout << "Enter 1 to wake a client, Enter anything to update" << endl;
+
+        fd_set fds;
+        FD_ZERO(&fds);
+        FD_SET(STDIN_FILENO, &fds);
+
+        struct timeval tv;
+        tv.tv_sec = 2;
+        tv.tv_usec = 0;
+        
+        int ret = select(STDIN_FILENO + 1, &fds, nullptr, nullptr, &tv);
+
+        if (ret > 0){
+            string input; 
+            getline(cin, input);
+            if (input == "1"){
+                cout << "Enter the ID of the client you want to awake: ";
+                getline(cin, input);
+
+                size_t id = stoi(input);
+                
+                if (id < 2 || id > computers.size()){
+                    cout << "ID invalido";
+                }
+                else{
+                    management.wakeOnLan(computers[id - 1].macAddress, computers[id - 1].ipAddress);
+                }
             }
         }
         system("clear");
@@ -96,9 +113,9 @@ int Interface::client() {
         "....======+=:........#:........=++=====......\n"
         "........-=======:..+#%#*-..========:.........\n" << endl;
         cout <<"You are a Client" <<endl<<"Hostname: "<<hostName<<"\t\t MAC Adress:"<<macAddress<<"\t\tIP Adress: "<<ipAddress<<endl;
-        cout <<"Enter 'exit' to leave"<<endl;
+        cout <<"Enter 'EXIT' to leave"<<endl;
         getline(cin, input);
-        if (input == "exit"){
+        if (input == "EXIT"){
             // FUNCAO CANCELAR O CPF
         }
         system("clear");

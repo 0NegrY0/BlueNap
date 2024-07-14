@@ -49,6 +49,7 @@ int Discovery::server() {
                 Computer comp = createComputer(ip, mac);
                 mtx.lock();
                 computers.push_back(comp);
+                hasUpdate = true;
                 mtx.unlock();
                 port = comp.port;
             }
@@ -110,17 +111,30 @@ int Discovery::client() {
         else {
             if (isDiscoveryResponse(buffer)) {
                 string message2(buffer);
-                size_t portPos = message2.find("Port:");
 
-                if (portPos == string::npos) {
+                size_t portPos = message2.find("Port:");
+                size_t hostNamePos = message2.find("Host Name:");
+                size_t macPos = message2.find("Host Mac:");
+
+                if (portPos == string::npos || hostNamePos == string::npos || macPos == string::npos) {
                     cerr << "Invalid discovery message format" << endl;
                     continue;
                 }
 
                 int port = stoi(message2.substr(portPos + strlen("Port:"), 5));
+                hostNamePos = hostNamePos + strlen("Host Name:");
+
+                string hostName = message2.substr(hostNamePos, macPos - hostNamePos);
+
+                macPos = macPos + strlen("Host Mac:");
+
+                string hostMac = message2.substr(macPos, portPos - macPos);
+
                 mtx.lock();
                 serverIp = inet_ntoa(responseAddr.sin_addr);
                 serverPort = ntohs(responseAddr.sin_port);
+                serverHostName = hostName;
+                serverMac = hostMac;
                 myPort = port;
                 mtx.unlock();
 
@@ -165,7 +179,11 @@ int Discovery::isAlreadyDiscovered(string clientIp) {
 char* Discovery::setDiscoveryResponse(int clientPort) {
     char* discoveryMessage = new char[MAX_BUFFER_SIZE];
 
-    string response = DISCOVERY_RESPONSE + string("Port:") + to_string(clientPort);
+    char hostname[1024];
+    gethostname(hostname, 1024);
+    string hostnameStr(hostname);
+
+    string response = DISCOVERY_RESPONSE + string("Host Name:") + hostnameStr + "Host Mac:" + getMacAddress() + string("Port:") + to_string(clientPort);
     snprintf(discoveryMessage, MAX_BUFFER_SIZE, "%s", response.c_str());
 
     return discoveryMessage;

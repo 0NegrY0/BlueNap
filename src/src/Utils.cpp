@@ -16,6 +16,8 @@ vector<Computer> computers;
 mutex mtx;
 string serverIp = "";
 int serverPort = 0;
+string serverHostName = "";
+string serverMac = "";
 int myPort = 0;
 bool hasUpdate = false;
 

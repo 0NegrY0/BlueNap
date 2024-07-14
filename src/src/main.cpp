@@ -1,4 +1,5 @@
 #include <iostream>
+#include <unistd.h>
 #include <vector>
 #include <thread>
 #include "../include/Discovery.hpp"
@@ -25,6 +26,9 @@ int main(int agrc, char* agrv[]) {
 
     try {
         if (isMaster) {
+            char hostName[1024];
+            gethostname(hostName, 1024);
+            string hostNameStr(hostName);
 
             Computer comp;
             comp.macAddress = discovery->getMacAddress();
@@ -32,6 +36,7 @@ int main(int agrc, char* agrv[]) {
             comp.id = 1;
             comp.isServer = true;
             comp.port = PORT_DISCOVERY;
+            comp.hostName = hostNameStr;
             computers.push_back(comp);
 
             threads.push_back(thread(&Discovery::server, discovery.get()));

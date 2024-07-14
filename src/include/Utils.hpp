@@ -31,7 +31,8 @@ extern string serverIp;
 extern int serverPort;
 extern int myPort;
 extern bool hasUpdate;
-
+extern string serverHostName;
+extern string serverMac;
 class Utils {
     public:
         string getIPAddress();
