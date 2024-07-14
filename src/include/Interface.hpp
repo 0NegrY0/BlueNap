@@ -1,11 +1,11 @@
 #ifndef INTERFACE_HPP
 #define INTERFACE_HPP
 
-#include "Utils.hpp"
+#include "Management.hpp"
 
 using namespace std;
 
-class Interface : public Utils {
+class Interface : public Management {
 
 public:
     int server();

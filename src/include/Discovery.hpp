@@ -2,7 +2,7 @@
 #define DISCOVERY_HPP
 
 #include <atomic>
-#include "Utils.hpp"
+#include "Management.hpp"
 
 #define MAX_BUFFER_SIZE 1024
 #define DISCOVERY_MESSAGE "wakeywakey"
@@ -11,7 +11,7 @@
 
 using namespace std;
 
-class Discovery : public Utils {
+class Discovery : public Management {
 
 public:
     atomic<bool> stopSending;
@@ -19,6 +19,11 @@ public:
     int server();
     int client();
     bool isDiscoveryMessage(char* buffer);
+    bool isDiscoveryResponse(char* buffer);
+    bool isExitMessage(char* buffer);
+    char* setDiscoveryResponse(int clientPort);
+    struct Computer createComputer(string clientIp, string clienMac);
+    int isAlreadyDiscovered(string clientIp);
 };
 
 #endif
