@@ -13,11 +13,15 @@ void Management::addComputer(const Computer& computer) {
 }
 
 void Management::removeComputer(int id) {
-    lock_guard<mutex> lock(mtx);
-    computers.erase(remove_if(computers.begin(), computers.end(),
-                              [id](const Computer& c) { return c.id == id; }),
-                    computers.end());
-    cv.notify_all();
+    mtx.lock();
+    for (size_t i = 1; i < computers.size(); ++i) {
+        if (computers[i].id == id) {
+            computers.erase(computers.begin() + i);
+            break;
+        }
+    }
+    mtx.unlock();
+
 }
 
 void Management::updateStatus(int id, bool isAwake) {
