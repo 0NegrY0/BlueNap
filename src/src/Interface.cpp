@@ -149,7 +149,7 @@ int Interface::client() {
         getline(cin, input);
         if (input == "EXIT"){
             management.askToCloseConnection();
-            sleep(5);
+            sleep(1);
             mtx.lock();
             shouldExit = true;
             mtx.unlock();

@@ -26,10 +26,10 @@ int Discovery::server() {
 
         if (isExitMessage(buffer)) {
             Management management;
-            for (Computer c : computers) {
+            for (size_t i = 0; i < computers.size(); i++){
                 string ipToCompare(inet_ntoa(clientAddr.sin_addr));
-                if (c.ipAddress == ipToCompare) {
-                    management.removeComputer(c.id); 
+                if (computers[i].ipAddress == ipToCompare) {
+                    computers.erase(computers.begin() + i);
                     break;
                 }
             }
