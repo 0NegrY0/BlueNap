@@ -15,6 +15,7 @@ void Management::addComputer(const Computer& computer) {
 void Management::removeComputer(int id) {
     mtx.lock();
     for (size_t i = 1; i < computers.size(); ++i) {
+        cout << "Entrou no for" << endl;
         if (computers[i].id == id) {
             cout << "vou apagar" << computers[i].ipAddress << endl;
             computers.erase(computers.begin() + i);

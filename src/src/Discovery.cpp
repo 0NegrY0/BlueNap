@@ -27,7 +27,8 @@ int Discovery::server() {
         if (isExitMessage(buffer)) {
             Management management;
             for (Computer c : computers) {
-                if (c.ipAddress == inet_ntoa(clientAddr.sin_addr)) {
+                string ipToCompare(inet_ntoa(clientAddr.sin_addr));
+                if (c.ipAddress == ipToCompare) {
                     management.removeComputer(c.id); 
                     break;
                 }
