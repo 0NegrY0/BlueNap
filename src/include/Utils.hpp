@@ -30,6 +30,7 @@ extern mutex mtx;
 extern string serverIp;
 extern int serverPort;
 extern int myPort;
+extern bool hasUpdate;
 
 class Utils {
     public:

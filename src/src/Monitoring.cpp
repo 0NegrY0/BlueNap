@@ -65,9 +65,23 @@ int Monitoring::client() {
     while (serverIp.empty());
 
     int sockfd = createSocket();
-    listenAtPort(sockfd, myPort);
 
-    struct sockaddr_in serverAddr;
+    //struct sockaddr_in localAddr = configureAddress(serverIp, myPort);
+    struct sockaddr_in localAddr;
+    socklen_t localLen = sizeof(localAddr);
+
+    memset(&localAddr, 0, sizeof(localAddr));
+    localAddr.sin_family = AF_INET;
+    localAddr.sin_addr.s_addr = INADDR_ANY;
+    localAddr.sin_port = htons(myPort);
+
+    if (bind(sockfd, (struct sockaddr*)&localAddr, localLen) < 0) {
+        cerr << "Error in bind(): " << strerror(errno) << endl;
+        close(sockfd);
+        return -1;
+    }
+
+    struct sockaddr_in serverAddr = configureAdress(serverIp, PORT_DISCOVERY);
     socklen_t serverLen = sizeof(serverAddr);
 
     char buffer[MAX_BUFFER_SIZE];
@@ -75,7 +89,7 @@ int Monitoring::client() {
     while (true) {
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, &serverLen);
         if (bytesReceived < 0) {
-            cerr << "Error in recvfrom(): " << strerror(errno) << endl;
+            std::cerr << "Error in recvfrom(): " << strerror(errno) << endl;
             continue;
         }
 

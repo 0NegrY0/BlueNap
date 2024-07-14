@@ -17,6 +17,7 @@ mutex mtx;
 string serverIp = "";
 int serverPort = 0;
 int myPort = 0;
+bool hasUpdate = false;
 
 string Utils::getIPAddress() {
     struct ifaddrs *ifaddr, *ifa;
