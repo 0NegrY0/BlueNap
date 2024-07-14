@@ -66,6 +66,7 @@ int Monitoring::client() {
 
     int sockfd = createSocket();
 
+    //struct sockaddr_in localAddr = configureAddress(serverIp, myPort);
     struct sockaddr_in localAddr;
     socklen_t localLen = sizeof(localAddr);
 

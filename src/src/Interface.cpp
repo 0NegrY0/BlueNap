@@ -47,11 +47,11 @@ int Interface::server() {
 
             size_t id = stoi(input);
             
-            if (id < 2 && id > computers.size()){
+            if (id < 2 || id > computers.size()){
                 cout << "ID invalido";
             }
             else{
-                management.wakeOnLan(computers[id].macAddress, computers[id].ipAddress);
+                management.wakeOnLan(computers[id - 1].macAddress, computers[id - 1].ipAddress);
             }
         }
         system("clear");
