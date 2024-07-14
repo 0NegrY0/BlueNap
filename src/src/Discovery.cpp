@@ -56,12 +56,14 @@ int Discovery::server() {
                 port = computers[computerId - 1].port;
             }
 
-            Computer comp = createComputer(ip, mac);
-            mtx.lock();
-            computers.push_back(comp);
-            mtx.unlock();
-            port = comp.port;
-            
+            else {
+                Computer comp = createComputer(ip, mac);
+                mtx.lock();
+                computers.push_back(comp);
+                mtx.unlock();
+                port = comp.port;
+            }
+
             strcpy(buffer, setDiscoveryResponse(port));
 
             sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
