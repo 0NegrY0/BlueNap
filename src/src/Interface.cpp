@@ -25,11 +25,11 @@ int Interface::server() {
 
     while (true){
         cout << endl << "============ Leader Machine ============" << endl;
-        cout << "ID: "<<computers[index].id<<" \t\t MAC Adress:"<<computers[index].macAddress<<" \t\tIP Adress: "<<computers[index].ipAddress;
+        cout << "ID: "<<computers[index].id<<"\t\tHostname: "<<computers[index].hostName<<"\t\tMAC Adress:"<<computers[index].macAddress<<"\t\tIP Adress: "<<computers[index].ipAddress;
         cout << endl << "================ Clients ===============" << endl;
         for (size_t i=0; i<computers.size(); i++){
             if (!computers[i].isServer){
-                cout << "ID: "<<computers[i].id<<" \t\tMAC Adress:"<<computers[i].macAddress<<" \t\tIP Adress: "<<computers[i].ipAddress<<" \t\tIs awake: ";
+                cout << "ID: "<<computers[i].id<<"\t\tHostname: "<<computers[i].hostName<<"\t\tMAC Adress:"<<computers[i].macAddress<<"\t\tIP Adress: "<<computers[i].ipAddress<<"\t\tIs awake: ";
                 if (computers[i].isAwake){
                     cout << "Yes"<<endl;
                 }
@@ -63,10 +63,40 @@ int Interface::server() {
 int Interface::client() {
     string macAddress = getMacAddress();
     string ipAddress = getIPAddress();
+    char hostName[1024];
+    gethostname(hostName, 1024);
+    string input;
 
     // Testar isso ai 
-    
-    cout <<"You are a Client" <<endl<<" MAC Adress:"<<macAddress<<" IP Adress: "<<ipAddress<<endl; 
+
+    cout <<
+"........................=+++++...............\n"
+"........................@@@@@@-..............\n"
+"..........................#@@................\n"
+"...................----..@@*........@@@@@@:..\n"
+".............=*@@@@@@@+.+@@@@@-.......-@@-...\n"
+"..........+#%@@*=---==........:**:...*@@.....\n"
+"........*#*+....................-**-=@@@@@:..\n"
+"......=*+...:*%%#-.......:*%%#=...-**........\n"
+".....+*-..+@@@@@@@@*...-@@@@@@@@%...**:......\n"
+"....**:..@@@@@@@@@@@#.=@@@@@@@@@@@:..**......\n"
+"...=*:..%@@@@@@@@@@@@*@@@@@@@@@@@@@:..**.....\n"
+"...**..-@@@*:@@@@==@@@@@%:@@@@*:@@@*..-*-....\n"
+"..=*-..+@@@@..=+..%@@@@@@..=+..*@@@%...*+....\n"
+"..+*:..=@@@@@@@@@@+.-%+..@@@@@@@@@@#...**....\n"
+"..+*-...@@@@@@@@@@:.-++..%@@@@@@@@@-..:**:...\n"
+"..+****....:#@@@@@@@-..@@@@@@@@=....+****....\n"
+"..=*****##*....+@@@@@@@@@@@%:...+##*****+....\n"
+"...*********%%-..:@@@@@@@=...#%*********-....\n"
+"...=***********@#...@@@=..=@#**********+.....\n"
+"....=+***********%+..+..:%************+:.....\n"
+".......-=.-*******#%...=%*******+.-=.........\n"
+"...+++*....-*******#:..%*******+....=*++:....\n"
+"...==++++....-++**+=...-+***+=....=+++==:....\n"
+"....======+=:........#:........=++=====......\n"
+"........-=======:..+#%#*-..========:.........\n" << endl;
+    cout <<"You are a Client" <<endl<<"Hostname: "<<hostName<<"\t\t MAC Adress:"<<macAddress<<"\t\tIP Adress: "<<ipAddress<<endl;
+    cout <<"Enter 'exit' to leave"<<endl; 
     return 0;
 }
 

@@ -18,6 +18,7 @@ namespace fs = filesystem;
 struct Computer {
     string macAddress;
     string ipAddress;
+    string hostName;
     int id;
     bool isServer;
     bool isAwake;

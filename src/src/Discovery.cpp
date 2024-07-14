@@ -84,7 +84,10 @@ int Discovery::client() {
     serverAddr.sin_port = htons(PORT_DISCOVERY);
     serverAddr.sin_addr.s_addr = inet_addr(BROADCAST_IP);
 
-    string message = DISCOVERY_MESSAGE + string(" MAC- ") + getMacAddress();
+    char hostname[1024];
+    gethostname(hostname, 1024);
+
+    string message = DISCOVERY_MESSAGE + string(" MAC- ") + getMacAddress() + string("Name- ") + hostname; //ADICIONAR HOST NAME
     snprintf(buffer, MAX_BUFFER_SIZE, "%s", message.c_str());
 
     socklen_t addrLen = sizeof(serverAddr);

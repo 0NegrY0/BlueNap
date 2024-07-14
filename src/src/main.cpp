@@ -8,7 +8,7 @@
 
 using namespace std;
 
-int main() {
+int main(int agrc, char* agrv[]) {
     
     int isMaster;
 
