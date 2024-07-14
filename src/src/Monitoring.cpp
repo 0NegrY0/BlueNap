@@ -86,7 +86,7 @@ int Monitoring::client() {
 
     char buffer[MAX_BUFFER_SIZE];
     
-    while (true) {
+    while(!shouldExit) {
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, &serverLen);
         if (bytesReceived < 0) {
             std::cerr << "Error in recvfrom(): " << strerror(errno) << endl;

@@ -7,38 +7,34 @@
 #include <algorithm>
 
 void Management::addComputer(const Computer& computer) {
-    lock_guard<mutex> lock(mtx);
+    mtx.lock();
     computers.push_back(computer);
-    cv.notify_all();
+    mtx.unlock();
 }
 
 void Management::removeComputer(int id) {
-    lock_guard<mutex> lock(mtx);
-    computers.erase(remove_if(computers.begin(), computers.end(),
-                              [id](const Computer& c) { return c.id == id; }),
-                    computers.end());
-    cv.notify_all();
+    mtx.lock();
+    for (size_t i = 1; i < computers.size(); ++i) {
+        cout << "Entrou no for" << endl;
+        sleep(5);
+        if (computers[i].id == id) {
+            cout << "vou apagar" << computers[i].ipAddress << endl;
+            computers.erase(computers.begin() + i);
+            break;
+        }
+    }
+    mtx.unlock();
 }
 
 void Management::updateStatus(int id, bool isAwake) {
-    lock_guard<mutex> lock(mtx);
+    mtx.lock();
     for (auto& computer : computers) {
         if (computer.id == id) {
             computer.isAwake = isAwake;
             break;
         }
     }
-    cv.notify_all();
-}
-
-void Management::handleStatusUpdate(int id, bool isAwake) {
-    updateStatus(id, isAwake);
-}
-
-vector<Computer> Management::getComputers() {
-    unique_lock<mutex> lock(mtx);
-    cv.wait(lock, [this] { return !computers.empty(); });
-    return computers;
+    mtx.unlock();
 }
 
 void Management::wakeOnLan(const string& macAddress, const string& ipAddress) {

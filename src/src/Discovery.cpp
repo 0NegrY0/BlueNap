@@ -1,4 +1,5 @@
 #include "../include/Discovery.hpp"
+#include "../include/Management.hpp"
 #include <iostream>
 #include <cstring>
 #include <cerrno>
@@ -23,18 +24,33 @@ int Discovery::server() {
             continue;
         }
 
+        if (isExitMessage(buffer)) {
+            Management management;
+            for (size_t i = 0; i < computers.size(); i++){
+                string ipToCompare(inet_ntoa(clientAddr.sin_addr));
+                if (computers[i].ipAddress == ipToCompare) {
+                    computers.erase(computers.begin() + i);
+                    break;
+                }
+            }
+        }
+
         if (isDiscoveryMessage(buffer)) {
             string message(buffer);
             size_t macPos = message.find("MAC- ");
+            size_t namePos = message.find("Name- ");
 
-            if (macPos == string::npos) {
+            if (macPos == string::npos || namePos == string::npos) {
                 cerr << "Invalid discovery message format" << endl;
                 continue;
             }
 
-            string ip = inet_ntoa(clientAddr.sin_addr);
-            string mac = message.substr(macPos + 5, 17);
+            string name = message.substr(namePos + strlen("Name- "));
 
+            string ip = inet_ntoa(clientAddr.sin_addr);
+            macPos = macPos + strlen("MAC- ");
+            string mac = message.substr(macPos, namePos - macPos);
+            
             int port;
             
             int computerId = isAlreadyDiscovered(ip);
@@ -47,6 +63,7 @@ int Discovery::server() {
 
             else {
                 Computer comp = createComputer(ip, mac);
+                comp.hostName = name;
                 mtx.lock();
                 computers.push_back(comp);
                 mtx.unlock();
@@ -84,13 +101,16 @@ int Discovery::client() {
     serverAddr.sin_port = htons(PORT_DISCOVERY);
     serverAddr.sin_addr.s_addr = inet_addr(BROADCAST_IP);
 
-    string message = DISCOVERY_MESSAGE + string(" MAC- ") + getMacAddress();
+    char hostname[1024];
+    gethostname(hostname, 1024);
+
+    string message = DISCOVERY_MESSAGE + string(" MAC- ") + getMacAddress() + string("Name- ") + hostname; //ADICIONAR HOST NAME
     snprintf(buffer, MAX_BUFFER_SIZE, "%s", message.c_str());
 
     socklen_t addrLen = sizeof(serverAddr);
     socklen_t responseAddrLen = sizeof(responseAddr);
 
-    while (true) {
+    while (!shouldExit) {
         if (sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, addrLen) == -1) {
             cerr << "Error sending discovery message: " << strerror(errno) << endl;
         } 
@@ -107,17 +127,30 @@ int Discovery::client() {
         else {
             if (isDiscoveryResponse(buffer)) {
                 string message2(buffer);
-                size_t portPos = message2.find("Port:");
 
-                if (portPos == string::npos) {
+                size_t portPos = message2.find("Port:");
+                size_t hostNamePos = message2.find("Host Name:");
+                size_t macPos = message2.find("Host Mac:");
+
+                if (portPos == string::npos || hostNamePos == string::npos || macPos == string::npos) {
                     cerr << "Invalid discovery message format" << endl;
                     continue;
                 }
 
                 int port = stoi(message2.substr(portPos + strlen("Port:"), 5));
+                hostNamePos = hostNamePos + strlen("Host Name:");
+
+                string hostName = message2.substr(hostNamePos, macPos - hostNamePos);
+
+                macPos = macPos + strlen("Host Mac:");
+
+                string hostMac = message2.substr(macPos, portPos - macPos);
+
                 mtx.lock();
                 serverIp = inet_ntoa(responseAddr.sin_addr);
                 serverPort = ntohs(responseAddr.sin_port);
+                serverHostName = hostName;
+                serverMac = hostMac;
                 myPort = port;
                 mtx.unlock();
 
@@ -132,6 +165,10 @@ int Discovery::client() {
 
 bool Discovery::isDiscoveryMessage(char* buffer) {
     return strstr(buffer, DISCOVERY_MESSAGE) != NULL;
+}
+
+bool Discovery::isExitMessage(char* buffer) {
+    return strstr(buffer, EXIT_MESSAGE) != NULL;
 }
 
 bool Discovery::isDiscoveryResponse(char* buffer) {
@@ -162,7 +199,11 @@ int Discovery::isAlreadyDiscovered(string clientIp) {
 char* Discovery::setDiscoveryResponse(int clientPort) {
     char* discoveryMessage = new char[MAX_BUFFER_SIZE];
 
-    string response = DISCOVERY_RESPONSE + string("Port:") + to_string(clientPort);
+    char hostname[1024];
+    gethostname(hostname, 1024);
+    string hostnameStr(hostname);
+
+    string response = DISCOVERY_RESPONSE + string("Host Name:") + hostnameStr + "Host Mac:" + getMacAddress() + string("Port:") + to_string(clientPort);
     snprintf(discoveryMessage, MAX_BUFFER_SIZE, "%s", response.c_str());
 
     return discoveryMessage;

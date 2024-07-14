@@ -16,7 +16,10 @@ vector<Computer> computers;
 mutex mtx;
 string serverIp = "";
 int serverPort = 0;
+string serverHostName = "";
+string serverMac = "";
 int myPort = 0;
+bool shouldExit = false;
 
 string Utils::getIPAddress() {
     struct ifaddrs *ifaddr, *ifa;
@@ -146,3 +149,18 @@ int Utils::listenAtPort(int sockfd, int port) {
     }
     return 0;
 }
+
+int Utils::askToCloseConnection() {
+    int sockfd = createSocket();
+            
+    struct sockaddr_in serverAddr = configureAdress(serverIp, serverPort);
+
+    char buffer[MAX_BUFFER_SIZE];
+    string message = EXIT_MESSAGE;
+
+    snprintf(buffer, MAX_BUFFER_SIZE, "%s", message.c_str());
+    sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
+
+    return 0;
+}
+
