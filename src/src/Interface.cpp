@@ -21,7 +21,6 @@ int Interface::server() {
         }
     }
 
-    //hasUpdate
     while (true){
 
         cout << endl << "============ Leader Machine ============" << endl;
@@ -51,7 +50,7 @@ int Interface::server() {
         struct timeval tv;
         tv.tv_sec = 2;
         tv.tv_usec = 0;
-        
+
         int ret = select(STDIN_FILENO + 1, &fds, nullptr, nullptr, &tv);
 
         if (ret > 0){
@@ -113,6 +112,7 @@ int Interface::client() {
         "....======+=:........#:........=++=====......\n"
         "........-=======:..+#%#*-..========:.........\n" << endl;
         cout <<"You are a Client" <<endl<<"Hostname: "<<hostName<<"\t\t MAC Adress:"<<macAddress<<"\t\tIP Adress: "<<ipAddress<<endl;
+        cout <<"Leader information:\t\tHostname: "<<serverHostName<<"\t\tMAC Adress"<<serverMac<<"\t\tIP Adress: "<<serverIp<<endl;
         cout <<"Enter 'EXIT' to leave"<<endl;
         getline(cin, input);
         if (input == "EXIT"){

@@ -49,7 +49,6 @@ int Discovery::server() {
                 Computer comp = createComputer(ip, mac);
                 mtx.lock();
                 computers.push_back(comp);
-                hasUpdate = true;
                 mtx.unlock();
                 port = comp.port;
             }

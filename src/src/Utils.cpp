@@ -19,7 +19,6 @@ int serverPort = 0;
 string serverHostName = "";
 string serverMac = "";
 int myPort = 0;
-bool hasUpdate = false;
 
 string Utils::getIPAddress() {
     struct ifaddrs *ifaddr, *ifa;
