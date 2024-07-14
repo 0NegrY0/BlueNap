@@ -8,112 +8,162 @@
 using namespace std;
 
 int Discovery::server() {
-    int sockfd;
-    struct sockaddr_in serverAddr, clientAddr;
+    struct sockaddr_in clientAddr;
     socklen_t clientLen = sizeof(clientAddr);
     char buffer[MAX_BUFFER_SIZE];
+    int sockfd = createSocket();
 
-    // Create UDP socket for discovery
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        cerr << "Error in socket creation" << endl;
-        return -1;
-    }
-
-    // Configure server address
-    memset(&serverAddr, 0, sizeof(serverAddr));
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_addr.s_addr = INADDR_ANY;
-    serverAddr.sin_port = htons(PORT_DISCOVERY);
-
-    // Bind socket to server address
-    if (bind(sockfd, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
-        cerr << "Error in bind()" << endl;
-        close(sockfd);
-        return -1;
-    }
-
-    cout << "Discovery service listening on port " << PORT_DISCOVERY << endl;
+    listenAtPort(sockfd, PORT_DISCOVERY);
 
     while (true) {
         memset(buffer, 0, sizeof(buffer));
-
-        // Receive discovery packet
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
         if (bytesReceived < 0) {
-            cerr << "Error in recvfrom()" << endl;
+            cerr << "Error in recvfrom(): " << strerror(errno) << endl;
             continue;
         }
 
-        // Check if received packet is a discovery message
-        if (strcmp(buffer, DISCOVERY_MESSAGE) == 0) {
-            cout << "Received discovery message from: " << inet_ntoa(clientAddr.sin_addr) << endl;
-
-            // Extract IP and MAC address from the message
+        if (isDiscoveryMessage(buffer)) {
             string message(buffer);
-            string ip, mac;
-            size_t ipPos = message.find("IP:");
-            size_t macPos = message.find(", MAC:");
-            if (ipPos != string::npos && macPos != string::npos) {
-                ip = message.substr(ipPos + 4, macPos - (ipPos + 4));
-                mac = message.substr(macPos + 7);
-            } else {
+            size_t macPos = message.find("MAC- ");
+
+            if (macPos == string::npos) {
                 cerr << "Invalid discovery message format" << endl;
                 continue;
             }
 
-            // Create a new Computer structure to store information about the computer
-            Computer comp;
-            comp.macAddress = mac;
-            comp.ipAddress = ip;
-            comp.id = computers.size() + 1;
-            comp.isServer = false; // Assuming all discovered computers are clients
+            string ip = inet_ntoa(clientAddr.sin_addr);
+            string mac = message.substr(macPos + 5, 17);
 
-            // Acquire mutual exclusion when adding a new computer to the vector
-            mtx.lock();
-            computers.push_back(comp);
-            mtx.unlock();
+            int port;
+            
+            int computerId = isAlreadyDiscovered(ip);
+            if (computerId != -1) {
+                mtx.lock();
+                computers[computerId - 1].isAwake = true;
+                mtx.unlock();
+                port = computers[computerId - 1].port;
+            }
 
-            // Inform that the computer has been discovered
-            isDiscovered = true;
+            else {
+                Computer comp = createComputer(ip, mac);
+                mtx.lock();
+                computers.push_back(comp);
+                mtx.unlock();
+                port = comp.port;
+            }
+
+            strcpy(buffer, setDiscoveryResponse(port));
+
+            sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
+            
         }
     }
 
-    // Close the socket
     close(sockfd);
     return 0;
 }
 
 int Discovery::client() {
-    int sockfd;
-    struct sockaddr_in serverAddr;
+    struct sockaddr_in serverAddr, responseAddr;
     char buffer[MAX_BUFFER_SIZE];
 
-    // Create UDP socket for discovery
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        cerr << "Error in socket creation" << endl;
+    int sockfd = createSocket();
+    setSocketTimeout(sockfd, TIMEOUT_SEC);
+
+    int broadcastPermission = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, (void *)&broadcastPermission, sizeof(broadcastPermission)) < 0) {
+        cerr << "Error setting socket to broadcast mode: " << strerror(errno) << endl;
         return -1;
     }
 
-    // Configure server address
+    listenAtPort(sockfd, 0);
+
     memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(PORT_DISCOVERY);
-    serverAddr.sin_addr.s_addr = INADDR_BROADCAST;
+    serverAddr.sin_addr.s_addr = inet_addr(BROADCAST_IP);
+
+    string message = DISCOVERY_MESSAGE + string(" MAC- ") + getMacAddress();
+    snprintf(buffer, MAX_BUFFER_SIZE, "%s", message.c_str());
+
+    socklen_t addrLen = sizeof(serverAddr);
+    socklen_t responseAddrLen = sizeof(responseAddr);
 
     while (true) {
-        if (!isDiscovered) { // Check if the computer has not been discovered yet
-            // Prepare discovery message with placeholders for IP and MAC address
-            sprintf(buffer, "%s", DISCOVERY_MESSAGE);
-            
-            // Send discovery message
-            sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
-            sleep(1); // Wait one second between sends
-        } else {
-            break; // If the computer has been discovered, stop sending
+        if (sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, addrLen) == -1) {
+            cerr << "Error sending discovery message: " << strerror(errno) << endl;
+        } 
+
+        int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&responseAddr, &responseAddrLen);
+        if (bytesReceived < 0) {
+            if (isTimeoutError()) {
+                //cout << "No response from server" << endl;
+                continue;
+            }
+            cerr << "Error in recvfrom(): " << strerror(errno) << endl;
+            break;
+        } 
+        else {
+            if (isDiscoveryResponse(buffer)) {
+                string message2(buffer);
+                size_t portPos = message2.find("Port:");
+
+                if (portPos == string::npos) {
+                    cerr << "Invalid discovery message format" << endl;
+                    continue;
+                }
+
+                int port = stoi(message2.substr(portPos + strlen("Port:"), 5));
+                mtx.lock();
+                serverIp = inet_ntoa(responseAddr.sin_addr);
+                serverPort = ntohs(responseAddr.sin_port);
+                myPort = port;
+                mtx.unlock();
+
+                break;
+            }
         }
     }
 
-    // Close the socket
     close(sockfd);
     return 0;
+}
+
+bool Discovery::isDiscoveryMessage(char* buffer) {
+    return strstr(buffer, DISCOVERY_MESSAGE) != NULL;
+}
+
+bool Discovery::isDiscoveryResponse(char* buffer) {
+    return strstr(buffer, DISCOVERY_RESPONSE) != NULL;
+}
+
+Computer Discovery::createComputer(string clientIp, string clientMac) {
+    Computer comp;
+    comp.macAddress = clientMac;
+    comp.ipAddress = clientIp;
+    comp.id = computers.size() + 1;
+    comp.isServer = false;
+    comp.isAwake = true;
+    comp.port = PORT_DISCOVERY + comp.id;
+
+    return comp;
+}
+
+int Discovery::isAlreadyDiscovered(string clientIp) {
+    for (Computer c : computers) {
+        if (c.ipAddress == clientIp) {
+            return c.id;
+        }
+    }
+    return -1;
+}
+
+char* Discovery::setDiscoveryResponse(int clientPort) {
+    char* discoveryMessage = new char[MAX_BUFFER_SIZE];
+
+    string response = DISCOVERY_RESPONSE + string("Port:") + to_string(clientPort);
+    snprintf(discoveryMessage, MAX_BUFFER_SIZE, "%s", response.c_str());
+
+    return discoveryMessage;
 }

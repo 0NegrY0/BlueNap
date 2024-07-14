@@ -63,7 +63,7 @@ void Management::wakeOnLan(const string& macAddress, const string& ipAddress) {
         cerr << "Erro ao criar socket" << endl;
         return;
     }
-
+    
     int broadcastEnable = 1;
     if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &broadcastEnable, sizeof(broadcastEnable)) < 0) {
         cerr << "Erro ao habilitar broadcast" << endl;

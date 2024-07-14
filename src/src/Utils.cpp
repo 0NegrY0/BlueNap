@@ -7,12 +7,17 @@
 #include <netdb.h>
 #include <filesystem>
 #include <fstream>
+#include <string>
+#include <unistd.h>
 
 using namespace std;
 
 vector<Computer> computers;
 mutex mtx;
-        
+string serverIp = "";
+int serverPort = 0;
+int myPort = 0;
+
 string Utils::getIPAddress() {
     struct ifaddrs *ifaddr, *ifa;
     int family, s;
@@ -51,31 +56,37 @@ string Utils::getIPAddress() {
 }
 
 string Utils::getMacAddress() {
+    namespace fs = std::filesystem;
+
     for (const auto& entry : fs::directory_iterator("/sys/class/net/")) {
-        string interface = entry.path().filename();
+        std::string interface = entry.path().filename().string();
 
-        ifstream file("/sys/class/net/" + interface + "/address");
-        if (file.is_open()) {
-            stringstream buffer;
-            buffer << file.rdbuf();
-            string macAddress = buffer.str();
+        // Check if the interface name starts with "enp"
+        if (interface.substr(0, 1) == "e") {                    //enp or eth (if there is another interface with e were are done for...)     
+            std::ifstream file("/sys/class/net/" + interface + "/address");
+            if (file.is_open()) {
+                std::stringstream buffer;
+                buffer << file.rdbuf();
+                std::string macAddress = buffer.str();
 
-            // Remove trailing newline
-            if (!macAddress.empty() && macAddress[macAddress.length() - 1] == '\n') {
-                macAddress.erase(macAddress.length() - 1);
-            }
+                // Remove trailing newline
+                if (!macAddress.empty() && macAddress[macAddress.length() - 1] == '\n') {
+                    macAddress.erase(macAddress.length() - 1);
+                }
 
-            if (!macAddress.empty()) {
-                return macAddress;
+                if (!macAddress.empty()) {
+                    return macAddress;
+                }
             }
         }
     }
 
-    throw runtime_error("Failed to find a network interface with a MAC address.");
+    throw std::runtime_error("Failed to find a network interface with a MAC address.");
 }
 
 string Utils::getManagerIp(const vector<Computer>& computers) {
-    for (size_t i = 0; i < computers.size(); ++i) {
+    cout << computers.size() << endl;
+    for (size_t i = 0; i < computers.size(); i++) {
         if (computers[i].isServer) {
             return computers[i].ipAddress;
         }
@@ -86,7 +97,7 @@ string Utils::getManagerIp(const vector<Computer>& computers) {
 int Utils::createSocket() {
     int sockfd;
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        cerr << "Erro na criação do socket" << endl;
+        cerr << "Error in socket creation" << endl;
         return -1;
     }
     return sockfd;
@@ -101,16 +112,37 @@ void Utils::setSocketTimeout(int sockfd, int sec) {
     }
 }
 
-struct sockaddr_in Utils::configureServerAddress(const string& ip, int port) {
+struct sockaddr_in Utils::configureAdress(const string& ip, int port) {
     struct sockaddr_in Addr;
     memset(&Addr, 0, sizeof(Addr));
     Addr.sin_family = AF_INET;
     Addr.sin_port = htons(port);
     if (inet_pton(AF_INET, ip.c_str(), &Addr.sin_addr) <= 0) {
         cerr << "Erro ao converter o endereço IP" << endl;
-        // Não é possível retornar -1, já que a função deve retornar uma estrutura sockaddr_in
-        // Vamos retornar uma estrutura inválida para indicar o erro
-        Addr.sin_family = AF_UNSPEC;
+        exit(EXIT_FAILURE);
     }
     return Addr;
+}
+
+bool Utils::isTimeoutError() {
+    return errno == EAGAIN || errno == EWOULDBLOCK;
+}
+
+int Utils::listenAtPort(int sockfd, int port) {
+    if (port != 0) {
+        port = htons(port);
+    }
+
+    struct sockaddr_in Addr;
+    memset(&Addr, 0, sizeof(Addr));
+    Addr.sin_family = AF_INET;
+    Addr.sin_addr.s_addr = INADDR_ANY;
+    Addr.sin_port = port;
+
+    if (bind(sockfd, (struct sockaddr*)&Addr, sizeof(Addr)) < 0) {
+        cerr << "Error in bind(): " << strerror(errno) << endl;
+        close(sockfd);
+        return -1;
+    }
+    return 0;
 }

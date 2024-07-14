@@ -13,18 +13,23 @@ int Interface::server() {
     Management management;
 
     int index = 0;
-    while (!computers[index].isServer){
-        index++;
+
+    for (size_t i=0; i<computers.size(); i++){
+        if (computers[i].isServer){
+            index = i;
+            break;
+        }
     }
+
     string input;
 
     while (true){
-        cout << endl << "========== Leader Machine ==========" << endl;
-        cout << "ID: "<<computers[index].id<<" MAC Adress:"<<computers[index].macAddress<<" IP Adress: "<<computers[index].ipAddress;
-        cout << endl << "========== Clients ==========" << endl;
-        for (int i=0; i<computers.size(); i++){
+        cout << endl << "============ Leader Machine ============" << endl;
+        cout << "ID: "<<computers[index].id<<" \t\t MAC Adress:"<<computers[index].macAddress<<" \t\tIP Adress: "<<computers[index].ipAddress;
+        cout << endl << "================ Clients ===============" << endl;
+        for (size_t i=0; i<computers.size(); i++){
             if (!computers[i].isServer){
-                cout << "ID: "<<computers[i].id<<" MAC Adress:"<<computers[i].macAddress<<" IP Adress: "<<computers[i].ipAddress<<" Is awake: ";
+                cout << "ID: "<<computers[i].id<<" \t\tMAC Adress:"<<computers[i].macAddress<<" \t\tIP Adress: "<<computers[i].ipAddress<<" \t\tIs awake: ";
                 if (computers[i].isAwake){
                     cout << "Yes"<<endl;
                 }
@@ -39,8 +44,15 @@ int Interface::server() {
         if (input == "1"){
             cout << "Enter the ID of the client you want to awake: ";
             getline(cin, input);
-            int id = stoi(input);
-            management.wakeOnLan(computers[id].macAddress, computers[id].ipAddress);
+
+            size_t id = stoi(input);
+            
+            if (id < 2 || id > computers.size()){
+                cout << "ID invalido";
+            }
+            else{
+                management.wakeOnLan(computers[id - 1].macAddress, computers[id - 1].ipAddress);
+            }
         }
         system("clear");
     }

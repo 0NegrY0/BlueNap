@@ -14,73 +14,91 @@ using namespace std;
 int Monitoring::server() {
 
     char buffer[MAX_BUFFER_SIZE];
-
-    int ports;  //TODO
-
-    int sockfd = createSocket();
-    setSocketTimeout(sockfd, TIMEOUT_SEC);
-
+    
     while (true) {
-        for (int i = 0; i < computers.size(); i++) {
-            struct sockaddr_in clientAddr = configureServerAddress(computers[i].ipAddress, ports);
+        for (size_t i = 1; i < computers.size(); i++) {
+            int sockfd = createSocket();
+            setSocketTimeout(sockfd, TIMEOUT_SEC);
+
+            string clientIp = computers[i].ipAddress;
+            int clientPort = computers[i].port;
+
+            struct sockaddr_in clientAddr = configureAdress(clientIp, clientPort);
+            socklen_t clientLen = sizeof(clientAddr);
 
             strcpy(buffer, MONITORING_MESSAGE);
 
-            sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, sizeof(clientAddr));
+            sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
 
-            int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, (socklen_t*)sizeof(clientAddr));
+            clientAddr = configureAdress(clientIp, clientPort);
+
+            int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
             if (bytesReceived < 0) {
-                if (errno == EAGAIN || errno == EWOULDBLOCK) { //PC ta dormindo
+                if (isTimeoutError()) {
                     mtx.lock();
                     computers[i].isAwake = false;
                     mtx.unlock();
                 }
                 else {
-                    std::cerr << "Error in recvfrom()" << std::endl;
+                    cerr << "Error in recvfrom(): " << strerror(errno) << endl;
+                    close(sockfd);
                     continue;
                 }
             }
             else {
+                buffer[bytesReceived] = '\0'; // Adiciona um terminador nulo para evitar problemas com a comparação
                 if (strcmp(buffer, MONITORING_MESSAGE_RESPONSE) == 0) {
                     mtx.lock();
                     computers[i].isAwake = true;
                     mtx.unlock();
                 }
             }
+            close(sockfd);
         }
+        sleep(5);
     }
-
-    close(sockfd);
+    return 0;
 }
     
 int Monitoring::client() {
+
+    while (serverIp.empty());
+
     int sockfd = createSocket();
 
-    int ports;  //TODO
+    //struct sockaddr_in localAddr = configureAddress(serverIp, myPort);
+    struct sockaddr_in localAddr;
+    socklen_t localLen = sizeof(localAddr);
 
-    string managerIp = getManagerIp(computers);
-    if (managerIp == "") {
-        cerr << "Erro ao obter o IP do gerenciador" << endl;
+    memset(&localAddr, 0, sizeof(localAddr));
+    localAddr.sin_family = AF_INET;
+    localAddr.sin_addr.s_addr = INADDR_ANY;
+    localAddr.sin_port = htons(myPort);
+
+    if (bind(sockfd, (struct sockaddr*)&localAddr, localLen) < 0) {
+        cerr << "Error in bind(): " << strerror(errno) << endl;
+        close(sockfd);
         return -1;
     }
 
-    struct sockaddr_in managerAddr = configureServerAddress(managerIp, ports);
+    struct sockaddr_in serverAddr = configureAdress(serverIp, PORT_DISCOVERY);
+    socklen_t serverLen = sizeof(serverAddr);
 
     char buffer[MAX_BUFFER_SIZE];
-
+    
     while (true) {
-        int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&managerAddr, (socklen_t*)sizeof(managerAddr));
+        int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, &serverLen);
         if (bytesReceived < 0) {
-            std::cerr << "Error in recvfrom()" << std::endl;
+            std::cerr << "Error in recvfrom(): " << strerror(errno) << endl;
             continue;
         }
-        else {
-            if (strcmp(buffer, MONITORING_MESSAGE) == 0) {
-                strcpy(buffer, MONITORING_MESSAGE_RESPONSE);
-                sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&managerAddr, sizeof(managerAddr));
-            }
+
+        buffer[bytesReceived] = '\0';
+        if (strcmp(buffer, MONITORING_MESSAGE) == 0) {
+            strcpy(buffer, MONITORING_MESSAGE_RESPONSE);
+            sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, serverLen);
         }
     }
+    close(sockfd);
+    return 0;
 }
-
-
