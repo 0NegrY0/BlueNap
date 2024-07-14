@@ -28,7 +28,7 @@ int Discovery::server() {
             Management management;
             for (Computer c : computers) {
                 if (c.ipAddress == inet_ntoa(clientAddr.sin_addr)) {
-                    management.removeComputer(c.id);
+                    management.removeComputer(c.id); 
                     break;
                 }
             }
@@ -37,15 +37,19 @@ int Discovery::server() {
         if (isDiscoveryMessage(buffer)) {
             string message(buffer);
             size_t macPos = message.find("MAC- ");
+            size_t namePos = message.find("Name- ");
 
-            if (macPos == string::npos) {
+            if (macPos == string::npos || namePos == string::npos) {
                 cerr << "Invalid discovery message format" << endl;
                 continue;
             }
 
-            string ip = inet_ntoa(clientAddr.sin_addr);
-            string mac = message.substr(macPos + 5, 17);
+            string name = message.substr(namePos + strlen("Name- "));
 
+            string ip = inet_ntoa(clientAddr.sin_addr);
+            macPos = macPos + strlen("MAC- ");
+            string mac = message.substr(macPos, namePos - macPos);
+            
             int port;
             
             int computerId = isAlreadyDiscovered(ip);
@@ -58,6 +62,7 @@ int Discovery::server() {
 
             else {
                 Computer comp = createComputer(ip, mac);
+                comp.hostName = name;
                 mtx.lock();
                 computers.push_back(comp);
                 mtx.unlock();
