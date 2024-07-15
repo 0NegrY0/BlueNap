@@ -20,6 +20,7 @@ string serverHostName = "";
 string serverMac = "";
 int myPort = 0;
 bool shouldExit = false;
+int nextID = 2;
 
 string Utils::getIPAddress() {
     struct ifaddrs *ifaddr, *ifa;

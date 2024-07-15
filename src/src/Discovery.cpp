@@ -179,7 +179,8 @@ Computer Discovery::createComputer(string clientIp, string clientMac) {
     Computer comp;
     comp.macAddress = clientMac;
     comp.ipAddress = clientIp;
-    comp.id = computers.size() + 1;
+    comp.id = nextID;
+    nextID++;
     comp.isServer = false;
     comp.isAwake = true;
     comp.port = PORT_DISCOVERY + comp.id;
