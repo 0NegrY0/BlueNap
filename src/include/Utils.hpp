@@ -34,6 +34,8 @@ extern int myPort;
 extern string serverHostName;
 extern string serverMac;
 extern bool shouldExit;
+extern int internalClock;
+
 class Utils {
     public:
         string getIPAddress();

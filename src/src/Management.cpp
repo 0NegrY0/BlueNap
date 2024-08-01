@@ -9,7 +9,21 @@
 void Management::addComputer(const Computer& computer) {
     mtx.lock();
     computers.push_back(computer);
+    internalClock++;
     mtx.unlock();
+}
+
+Computer Management::createComputer(string clientIp, string clientMac) {
+    Computer comp;
+    comp.macAddress = clientMac;
+    comp.ipAddress = clientIp;
+    comp.id = nextID;
+    nextID++;
+    comp.isServer = false;
+    comp.isAwake = true;
+    comp.port = PORT_DISCOVERY + comp.id;
+
+    return comp;
 }
 
 void Management::removeComputer(int id) {
@@ -23,6 +37,7 @@ void Management::removeComputer(int id) {
             break;
         }
     }
+    internalClock++;
     mtx.unlock();
 }
 
@@ -34,7 +49,20 @@ void Management::updateStatus(int id, bool isAwake) {
             break;
         }
     }
+    internalClock++;
     mtx.unlock();
+}
+
+int Management::getPort(int computerId) {
+    int port;
+    mtx.lock();
+    for (auto& computer : computers) {
+        if (computer.id == id) {
+            port = computer.port;
+        }
+    }
+    mtx.unlock();
+    return port;
 }
 
 void Management::wakeOnLan(const string& macAddress, const string& ipAddress) {

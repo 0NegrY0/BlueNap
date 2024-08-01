@@ -22,7 +22,6 @@ public:
     bool isDiscoveryResponse(char* buffer);
     bool isExitMessage(char* buffer);
     char* setDiscoveryResponse(int clientPort);
-    struct Computer createComputer(string clientIp, string clienMac);
     int isAlreadyDiscovered(string clientIp);
 };
 

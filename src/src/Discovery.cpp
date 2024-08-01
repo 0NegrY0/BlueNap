@@ -15,6 +15,7 @@ int Discovery::server() {
     int sockfd = createSocket();
 
     listenAtPort(sockfd, PORT_DISCOVERY);
+    Management management;
 
     while (true) {
         memset(buffer, 0, sizeof(buffer));
@@ -25,7 +26,6 @@ int Discovery::server() {
         }
 
         if (isExitMessage(buffer)) {
-            Management management;
             for (size_t i = 0; i < computers.size(); i++){
                 string ipToCompare(inet_ntoa(clientAddr.sin_addr));
                 if (computers[i].ipAddress == ipToCompare) {
@@ -55,18 +55,14 @@ int Discovery::server() {
             
             int computerId = isAlreadyDiscovered(ip);
             if (computerId != -1) {
-                mtx.lock();
-                computers[computerId - 1].isAwake = true;
-                mtx.unlock();
-                port = computers[computerId - 1].port;
+                management.updateStatus(computerId, true);
+                port = management.getPort(computerId);
             }
 
             else {
-                Computer comp = createComputer(ip, mac);
+                Computer comp = management.createComputer(ip, mac);
                 comp.hostName = name;
-                mtx.lock();
-                computers.push_back(comp);
-                mtx.unlock();
+                management.addComputer(comp);
                 port = comp.port;
             }
 
@@ -173,18 +169,6 @@ bool Discovery::isExitMessage(char* buffer) {
 
 bool Discovery::isDiscoveryResponse(char* buffer) {
     return strstr(buffer, DISCOVERY_RESPONSE) != NULL;
-}
-
-Computer Discovery::createComputer(string clientIp, string clientMac) {
-    Computer comp;
-    comp.macAddress = clientMac;
-    comp.ipAddress = clientIp;
-    comp.id = computers.size() + 1;
-    comp.isServer = false;
-    comp.isAwake = true;
-    comp.port = PORT_DISCOVERY + comp.id;
-
-    return comp;
 }
 
 int Discovery::isAlreadyDiscovered(string clientIp) {

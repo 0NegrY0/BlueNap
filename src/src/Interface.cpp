@@ -14,12 +14,12 @@ int Interface::server() {
 
     int index = 0;
 
-    for (size_t i=0; i<computers.size(); i++){
+    /*for (size_t i=0; i<computers.size(); i++){
         if (computers[i].isServer){
             index = i;
             break;
         }
-    }
+    }*/
 
     while (true){
 
