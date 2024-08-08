@@ -57,7 +57,7 @@ int Management::getPort(int computerId) {
     int port;
     mtx.lock();
     for (auto& computer : computers) {
-        if (computer.id == id) {
+        if (computer.id == computerId) {
             port = computer.port;
         }
     }
@@ -110,4 +110,62 @@ void Management::wakeOnLan(const string& macAddress, const string& ipAddress) {
 
     // Fecha o socket
     close(sockfd);
+}
+
+void Management::startElection(int initiator) {
+    int myId = myPort - PORT_DISCOVERY;
+    cout << "Process " << myId << " started an election." << endl;
+    bool amILeader = true;
+    char buffer[MAX_BUFFER_SIZE];
+
+    for (auto& comp : computers) {
+        if (comp.isAwake && comp.id < myId) {
+            int sockfd = createSocket();
+            setSocketTimeout(sockfd, 1);
+
+            struct sockaddr_in clientAddr = configureAdress(comp.ipAddress, comp.port);
+            socklen_t clientLen = sizeof(clientAddr);
+
+            string message = ELECTION_MESSAGE + to_string(myId);
+            char* electionMessage = new char[MAX_BUFFER_SIZE];
+            snprintf(electionMessage, MAX_BUFFER_SIZE, "%s", message.c_str());
+
+            sendto(sockfd, electionMessage, strlen(electionMessage), 0, (struct sockaddr*)&clientAddr, clientLen);
+
+            clientAddr = configureAdress(comp.ipAddress, comp.port);
+            int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
+            if (bytesReceived > 0) {
+                if (isMessage(buffer, ELECTION_RESPONSE)) {
+                    amILeader = false;
+                    break;
+                }
+            }
+        }
+    }
+    if (amILeader) {
+        announceElectionResult();
+    }
+}
+
+void Management::announceElectionResult() {
+    char* electionResult = new char[MAX_BUFFER_SIZE];
+
+    char hostname[1024];
+    gethostname(hostname, 1024);
+    string hostnameStr(hostname);
+
+    string response = ELECTION_RESULT + string("Host Name:") + hostnameStr + "Host Mac:" + getMacAddress();
+    snprintf(electionResult, MAX_BUFFER_SIZE, "%s", response.c_str());
+
+    for (auto& comp : computers) {
+        if (comp.isAwake) {
+            int sockfd = createSocket();
+
+            struct sockaddr_in clientAddr = configureAdress(comp.ipAddress, comp.port);
+            socklen_t clientLen = sizeof(clientAddr);
+
+            sendto(sockfd, electionResult, strlen(electionResult), 0, (struct sockaddr*)&clientAddr, clientLen);
+        }
+    }
+    isMaster = 1;
 }

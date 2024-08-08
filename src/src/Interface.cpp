@@ -12,7 +12,8 @@ using namespace std;
 int Interface::server() {
     Management management;
 
-    int index = 0;
+    int myID = myPort - PORT_DISCOVERY; 
+    //int index = 0;
 
     /*for (size_t i=0; i<computers.size(); i++){
         if (computers[i].isServer){
@@ -53,7 +54,7 @@ int Interface::server() {
 
         cout << endl << "============ Leader Machine ============" << endl;
         mtx.lock();
-        cout << "ID: "<<computers[index].id<<"\t\tHostname: "<<computers[index].hostName<<"\t\tMAC Adress:"<<computers[index].macAddress<<"\t\tIP Adress: "<<computers[index].ipAddress;
+        cout << "ID: "<<computers[myID].id<<"\t\tHostname: "<<computers[myID].hostName<<"\t\tMAC Adress:"<<computers[myID].macAddress<<"\t\tIP Adress: "<<computers[myID].ipAddress;
         cout << endl << "================ Clients ===============" << endl;
         for (size_t i=0; i<computers.size(); i++){
             if (!computers[i].isServer){
@@ -114,7 +115,7 @@ int Interface::client() {
     Management management;
 
     // Testar isso ai 
-    while (!shouldExit){
+    while (!shouldExit && !isMaster){
         cout <<
         "........................=+++++...............\n"
         "........................@@@@@@-..............\n"

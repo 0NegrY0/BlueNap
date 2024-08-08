@@ -106,7 +106,7 @@ int Discovery::client() {
     socklen_t addrLen = sizeof(serverAddr);
     socklen_t responseAddrLen = sizeof(responseAddr);
 
-    while (!shouldExit) {
+    while (!shouldExit && !isMaster) {
         if (sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, addrLen) == -1) {
             cerr << "Error sending discovery message: " << strerror(errno) << endl;
         } 

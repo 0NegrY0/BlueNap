@@ -11,6 +11,9 @@
 #define PORT_DISCOVERY 40000
 #define TEST_PORT 40001
 #define EXIT_MESSAGE "KILLME"
+#define ELECTION_MESSAGE "ELECTION: "
+#define ELECTION_RESPONSE "ELECTION RESPONSE"
+#define ELECTION_RESULT "I AM THE NEW LEADER"
 
 using namespace std;
 
@@ -35,6 +38,8 @@ extern string serverHostName;
 extern string serverMac;
 extern bool shouldExit;
 extern int internalClock;
+extern int nextID;
+extern int isMaster;
 
 class Utils {
     public:
@@ -47,6 +52,8 @@ class Utils {
         bool isTimeoutError();
         int listenAtPort(int socket, int port);
         int askToCloseConnection();
+        bool isElectionMessage(char* buffer);
+        bool isMessage(char* buffer, string message);
 };
 
 #endif

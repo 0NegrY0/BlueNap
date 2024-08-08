@@ -21,6 +21,8 @@ string serverMac = "";
 int myPort = 0;
 bool shouldExit = false;
 int internalClock = -1;
+int nextID = 0;
+int isMaster = 0;
 
 string Utils::getIPAddress() {
     struct ifaddrs *ifaddr, *ifa;
@@ -165,3 +167,10 @@ int Utils::askToCloseConnection() {
     return 0;
 }
 
+bool Utils::isElectionMessage(char* buffer) {
+    return strstr(buffer, ELECTION_MESSAGE) != NULL;
+}
+
+bool isMessage(char* buffer, string message) {
+    return strstr(buffer, message) != NULL;
+}

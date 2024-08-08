@@ -16,7 +16,9 @@ public:
     void wakeOnLan(const string& macAddress, const string& ipAddress);
     void handleStatusUpdate(int id, bool isAwake);
     struct Computer createComputer(string clientIp, string clienMac);
-    int getPort(int computerId) 
+    int getPort(int computerId);
+    void startElection(int initiator);
+    void announceElectionResult();
 
 private:
     vector<Computer> computers;

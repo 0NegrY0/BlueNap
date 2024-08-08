@@ -1,4 +1,5 @@
 #include "../include/Monitoring.hpp"
+#include "../include/Management.hpp"
 #include <iostream>
 #include <thread>
 #include <unistd.h>
@@ -55,7 +56,6 @@ int Monitoring::server() {
             }
             close(sockfd);
         }
-        sleep(5);
     }
     return 0;
 }
@@ -65,6 +65,7 @@ int Monitoring::client() {
     while (serverIp.empty());
 
     int sockfd = createSocket();
+    setSocketTimeout(sockfd, 10);
 
     //struct sockaddr_in localAddr = configureAddress(serverIp, myPort);
     struct sockaddr_in localAddr;
@@ -85,11 +86,18 @@ int Monitoring::client() {
     socklen_t serverLen = sizeof(serverAddr);
 
     char buffer[MAX_BUFFER_SIZE];
+    Management management;
     
-    while(!shouldExit) {
+    while(!shouldExit && !isMaster) {
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, &serverLen);
+
         if (bytesReceived < 0) {
-            std::cerr << "Error in recvfrom(): " << strerror(errno) << endl;
+            if (isTimeoutError()) {
+                management.startElection(myPort - PORT_DISCOVERY);
+            }
+            else {
+                std::cerr << "Error in recvfrom(): " << strerror(errno) << endl;
+            }
             continue;
         }
 
@@ -97,6 +105,54 @@ int Monitoring::client() {
         if (strcmp(buffer, MONITORING_MESSAGE) == 0) {
             strcpy(buffer, MONITORING_MESSAGE_RESPONSE);
             sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, serverLen);
+        }
+
+        else if (isElectionMessage(buffer)) {
+            string message(buffer);
+
+            size_t maxIdPos = message.find(ELECTION_MESSAGE);
+
+            if (maxIdPos == string::npos) {
+                cerr << "Invalid election message format" << endl;
+                continue;
+            }
+            int id = stoi(message.substr(maxIdPos + strlen(ELECTION_MESSAGE)));
+            int myId = myPort - PORT_DISCOVERY;
+            if (myId < id) {
+                string response = "RESPONSE" + to_string(myId);
+                char* responseMessage = new char[MAX_BUFFER_SIZE];
+                snprintf(responseMessage, MAX_BUFFER_SIZE, "%s", response.c_str());
+                sendto(sockfd, responseMessage, strlen(responseMessage), 0, (struct sockaddr*)&serverAddr, serverLen);
+                sleep(2);
+                management.startElection(myPort - PORT_DISCOVERY);
+            }
+        } 
+
+        else if (isMessage(buffer, ELECTION_RESULT)) {
+            string message(buffer);
+
+            size_t hostNamePos = message.find("Host Name:");
+            size_t macPos = message.find("Host Mac:");
+
+            if (hostNamePos == string::npos || macPos == string::npos) {
+                cerr << "Invalid discovery message format" << endl;
+                continue;
+            }
+
+            hostNamePos = hostNamePos + strlen("Host Name:");
+
+            string hostName = message.substr(hostNamePos, macPos - hostNamePos);
+
+            macPos = macPos + strlen("Host Mac:");
+
+            string hostMac = message.substr(macPos);
+
+            mtx.lock();
+            serverIp = inet_ntoa(serverAddr.sin_addr);
+            //serverPort = ntohs(serverAddr.sin_port);
+            serverHostName = hostName;
+            serverMac = hostMac;
+            mtx.unlock();
         }
     }
     close(sockfd);
