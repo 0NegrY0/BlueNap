@@ -19,6 +19,12 @@ public:
     int getPort(int computerId);
     void startElection(int initiator);
     void announceElectionResult();
+    void sendComputers(int socket, vector<Computer>& vec);
+    vector<Computer>receiveComputers(int socket);
+    Computer deserialize(const char* data, size_t& bytesRead);
+    vector<char> setMonitoringMessage();
+    void receiveComputers(vector<char>& buffer);
+    Computer deserialize(const char* data, size_t& bytesRead);
 
 private:
     vector<Computer> computers;

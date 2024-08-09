@@ -15,8 +15,8 @@ using namespace std;
 int Monitoring::server() {
 
     char buffer[MAX_BUFFER_SIZE];
-    
-    while (true) {
+    Management management;
+    while (isMaster) {
         for (size_t i = 1; i < computers.size(); i++) {
             int sockfd = createSocket();
             setSocketTimeout(sockfd, TIMEOUT_SEC);
@@ -27,18 +27,21 @@ int Monitoring::server() {
             struct sockaddr_in clientAddr = configureAdress(clientIp, clientPort);
             socklen_t clientLen = sizeof(clientAddr);
 
-            strcpy(buffer, MONITORING_MESSAGE);
+            vector<char> send = management.setMonitoringMessage();
 
-            sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
+            // // Ensure the vector is null-terminated if necessary
+            // if (send.empty() || send.back() != '\0') {
+            //     send.push_back('\0');
+            // }
+
+            sendto(sockfd, send.data(), send.size(), 0, (struct sockaddr*)&clientAddr, clientLen);
 
             clientAddr = configureAdress(clientIp, clientPort);
 
             int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
             if (bytesReceived < 0) {
                 if (isTimeoutError()) {
-                    mtx.lock();
-                    computers[i].isAwake = false;
-                    mtx.unlock();
+                    management.updateStatus(computers[i].id, false);
                 }
                 else {
                     cerr << "Error in recvfrom(): " << strerror(errno) << endl;
@@ -49,9 +52,14 @@ int Monitoring::server() {
             else {
                 buffer[bytesReceived] = '\0'; // Adiciona um terminador nulo para evitar problemas com a comparação
                 if (strcmp(buffer, MONITORING_MESSAGE_RESPONSE) == 0) {
-                    mtx.lock();
-                    computers[i].isAwake = true;
-                    mtx.unlock();
+                    management.updateStatus(computers[i].id, true);
+                }
+                if (isMessage(buffer, MONITORING_MESSAGE)) {
+                    management.receiveComputers(buffer);
+                    if (internalClock < message.internalclock){
+                            isMaster = false;
+                        }
+                    
                 }
             }
             close(sockfd);
@@ -102,7 +110,8 @@ int Monitoring::client() {
         }
 
         buffer[bytesReceived] = '\0';
-        if (strcmp(buffer, MONITORING_MESSAGE) == 0) {
+        if (isMessage(buffer, MONITORING_MESSAGE)) {
+            management.receiveComputers(buffer);            //TODO: Implementar a função receiveComputers
             strcpy(buffer, MONITORING_MESSAGE_RESPONSE);
             sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, serverLen);
         }

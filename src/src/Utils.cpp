@@ -172,5 +172,5 @@ bool Utils::isElectionMessage(char* buffer) {
 }
 
 bool isMessage(char* buffer, string message) {
-    return strstr(buffer, message) != NULL;
+    return strstr(buffer, message.c_str()) != NULL;
 }

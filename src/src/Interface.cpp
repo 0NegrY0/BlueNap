@@ -22,7 +22,7 @@ int Interface::server() {
         }
     }*/
 
-    while (true){
+    while (isMaster){
 
         cout <<
         "........................=+++++...............\n"

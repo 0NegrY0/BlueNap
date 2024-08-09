@@ -14,6 +14,7 @@
 #define ELECTION_MESSAGE "ELECTION: "
 #define ELECTION_RESPONSE "ELECTION RESPONSE"
 #define ELECTION_RESULT "I AM THE NEW LEADER"
+#define MONITORING_MESSAGE "Are you Awake?"
 
 using namespace std;
 

@@ -1,4 +1,5 @@
 #include "../include/Management.hpp"
+#include "../include/Utils.hpp"
 #include <iostream>
 #include <cstring>
 #include <cerrno>
@@ -43,13 +44,15 @@ void Management::removeComputer(int id) {
 
 void Management::updateStatus(int id, bool isAwake) {
     mtx.lock();
-    for (auto& computer : computers) {
-        if (computer.id == id) {
-            computer.isAwake = isAwake;
+    for (auto& comp : computers) {
+        if (comp.id == id) {
+            if (comp.isAwake != isAwake) {
+                comp.isAwake = isAwake;
+                internalClock++;
+            }
             break;
         }
     }
-    internalClock++;
     mtx.unlock();
 }
 
@@ -69,7 +72,7 @@ void Management::wakeOnLan(const string& macAddress, const string& ipAddress) {
     // Cria o pacote mágico
     unsigned char packet[102];
     // Preenche os primeiros 6 bytes com 0xFF
-    std::fill(packet, packet + 6, 0xFF);
+    fill(packet, packet + 6, 0xFF);
 
     // Converte o endereço MAC de string para bytes
     unsigned char mac[6];
@@ -78,7 +81,7 @@ void Management::wakeOnLan(const string& macAddress, const string& ipAddress) {
 
     // Preenche os próximos 16 blocos de 6 bytes com o endereço MAC
     for (int i = 0; i < 16; ++i) {
-        std::copy(mac, mac + 6, packet + 6 + i * 6);
+        copy(mac, mac + 6, packet + 6 + i * 6);
     }
 
     // Configura o endereço de destino
@@ -168,4 +171,131 @@ void Management::announceElectionResult() {
         }
     }
     isMaster = 1;
+}
+
+Computer Management::deserialize(const char* data, size_t& bytesRead) {
+    Computer comp;
+    size_t offset = 0;
+
+    // Deserialize the string macAddress
+    const char* macAddressStart = data + offset;
+    const char* macAddressEnd = find(macAddressStart, macAddressStart + 256, '\0');
+    comp.macAddress.assign(macAddressStart, macAddressEnd);
+    offset += (macAddressEnd - macAddressStart) + 1; // +1 for the null character
+
+    // Deserialize the string ipAddress
+    const char* ipAddressStart = data + offset;
+    const char* ipAddressEnd = find(ipAddressStart, ipAddressStart + 256, '\0');
+    comp.ipAddress.assign(ipAddressStart, ipAddressEnd);
+    offset += (ipAddressEnd - ipAddressStart) + 1; // +1 for the null character
+
+    // Deserialize the string hostName
+    const char* hostNameStart = data + offset;
+    const char* hostNameEnd = find(hostNameStart, hostNameStart + 256, '\0');
+    comp.hostName.assign(hostNameStart, hostNameEnd);
+    offset += (hostNameEnd - hostNameStart) + 1; // +1 for the null character
+
+    // Deserialize the integer id
+    memcpy(&comp.id, data + offset, sizeof(int));
+    offset += sizeof(int);
+
+    // Deserialize the bool isServer
+    memcpy(&comp.isServer, data + offset, sizeof(bool));
+    offset += sizeof(bool);
+
+    // Deserialize the bool isAwake
+    memcpy(&comp.isAwake, data + offset, sizeof(bool));
+    offset += sizeof(bool);
+
+    // Deserialize the integer port
+    memcpy(&comp.port, data + offset, sizeof(int));
+    offset += sizeof(int);
+
+    // Update the total bytes read
+    bytesRead = offset;
+
+    return comp;
+}
+
+vector<char> Management::setMonitoringMessage() {
+    string message = MONITORING_MESSAGE + to_string(internalClock);
+
+    int messageSize = message.length();
+
+    int vecSize = computers.size();
+    int totalSize = messageSize + 1 + sizeof(int); // +1 for null terminator
+
+    for (const auto& comp : computers) {
+        totalSize += comp.macAddress.size() + 1;
+        totalSize += comp.ipAddress.size() + 1;
+        totalSize += comp.hostName.size() + 1;
+        totalSize += sizeof(int);
+        totalSize += sizeof(bool);
+        totalSize += sizeof(bool);
+        totalSize += sizeof(int);
+    }
+
+    vector<char> buffer(totalSize);
+
+    char* bufferPos = buffer.data();
+    memcpy(bufferPos, message.c_str(), messageSize + 1); // +1 for null terminator
+    bufferPos += messageSize + 1;
+
+    memcpy(bufferPos, &vecSize, sizeof(int));
+    bufferPos += sizeof(int);
+
+    for (const auto& comp : computers) {
+        memcpy(bufferPos, comp.macAddress.c_str(), comp.macAddress.size() + 1);
+        bufferPos += comp.macAddress.size() + 1;
+
+        memcpy(bufferPos, comp.ipAddress.c_str(), comp.ipAddress.size() + 1);
+        bufferPos += comp.ipAddress.size() + 1;
+
+        memcpy(bufferPos, comp.hostName.c_str(), comp.hostName.size() + 1);
+        bufferPos += comp.hostName.size() + 1;
+
+        memcpy(bufferPos, &comp.id, sizeof(int));
+        bufferPos += sizeof(int);
+
+        memcpy(bufferPos, &comp.isServer, sizeof(bool));
+        bufferPos += sizeof(bool);
+
+        memcpy(bufferPos, &comp.isAwake, sizeof(bool));
+        bufferPos += sizeof(bool);
+
+        memcpy(bufferPos, &comp.port, sizeof(int));
+        bufferPos += sizeof(int);
+    }
+
+    return buffer;
+}
+
+void Management::receiveComputers(vector<char>& buffer) {
+    const char* currentPos = buffer.data();
+    
+    string message(currentPos);
+    size_t pos = message.find(MONITORING_MESSAGE);
+    if (pos == string::npos) {
+        cerr << "Monitoring message not found" << endl;
+        return;
+    }
+
+    int clockReceived = stoi(message.substr(pos + strlen(MONITORING_MESSAGE)));
+    currentPos += message.size() + 1;
+    if (clockReceived > internalClock) {
+        int vecSize;
+        memcpy(&vecSize, currentPos, sizeof(int));
+        currentPos += sizeof(int); 
+
+        computers.resize(vecSize);
+        for (int i = 0; i < vecSize; ++i) {
+            size_t bytesRead = 0;
+            computers[i] = deserialize(currentPos, bytesRead);
+            currentPos += bytesRead;
+        }
+        internalClock = clockReceived;
+        if (isMaster == 1) {
+            isMaster = 0;
+        }
+    }
 }

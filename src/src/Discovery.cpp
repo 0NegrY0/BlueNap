@@ -17,7 +17,7 @@ int Discovery::server() {
     listenAtPort(sockfd, PORT_DISCOVERY);
     Management management;
 
-    while (true) {
+    while (isMaster) {
         memset(buffer, 0, sizeof(buffer));
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
         if (bytesReceived < 0) {
