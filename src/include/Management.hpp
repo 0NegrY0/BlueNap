@@ -24,7 +24,6 @@ public:
     Computer deserialize(const char* data, size_t& bytesRead);
     vector<char> setMonitoringMessage();
     void receiveComputers(char buffer[]);
-    Computer deserialize(const char* data, size_t& bytesRead);
 
 private:
     vector<Computer> computers;
