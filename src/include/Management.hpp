@@ -9,7 +9,7 @@
 class Management : public Utils {
 
 public:
-    void addComputer(const Computer& computer);
+    void addComputer(Computer comp);
     void removeComputer(int id);
     void updateStatus(int id, bool isAwake);
     vector<Computer> getComputers();
@@ -24,10 +24,6 @@ public:
     Computer deserialize(const char* data, size_t& bytesRead);
     vector<char> setMonitoringMessage();
     void receiveComputers(char buffer[]);
-
-private:
-    vector<Computer> computers;
-    mutable mutex mtx;
 };
 
 #endif

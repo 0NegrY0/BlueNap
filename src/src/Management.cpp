@@ -1,5 +1,4 @@
 #include "../include/Management.hpp"
-#include "../include/Utils.hpp"
 #include <iostream>
 #include <cstring>
 #include <cerrno>
@@ -7,9 +6,9 @@
 #include <unistd.h>
 #include <algorithm>
 
-void Management::addComputer(const Computer& computer) {
+void Management::addComputer(Computer comp) {
     mtx.lock();
-    computers.push_back(computer);
+    computers.push_back(comp);
     internalClock++;
     mtx.unlock();
 }

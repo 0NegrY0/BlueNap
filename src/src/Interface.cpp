@@ -12,15 +12,14 @@ using namespace std;
 int Interface::server() {
     Management management;
 
-    int myID = myPort - PORT_DISCOVERY; 
-    //int index = 0;
-
-    /*for (size_t i=0; i<computers.size(); i++){
+    int index = 0;
+    for (size_t i=0; i<computers.size(); i++){
         if (computers[i].isServer){
             index = i;
             break;
         }
-    }*/
+    }
+    cout << "Tamanho" << computers.size();
 
     while (isMaster){
 
@@ -54,7 +53,7 @@ int Interface::server() {
 
         cout << endl << "============ Leader Machine ============" << endl;
         mtx.lock();
-        cout << "ID: "<<computers[myID].id<<"\t\tHostname: "<<computers[myID].hostName<<"\t\tMAC Adress:"<<computers[myID].macAddress<<"\t\tIP Adress: "<<computers[myID].ipAddress;
+        cout << "ID: "<<computers[index].id<<"\t\tHostname: "<<computers[index].hostName<<"\t\tMAC Adress:"<<computers[index].macAddress<<"\t\tIP Adress: "<<computers[index].ipAddress;
         cout << endl << "================ Clients ===============" << endl;
         for (size_t i=0; i<computers.size(); i++){
             if (!computers[i].isServer){
@@ -68,7 +67,7 @@ int Interface::server() {
             }
         }
         mtx.unlock();
-
+        
         cout << endl << "You are the Leader" << endl; 
         cout << "Enter 1 to wake a client, Enter anything to update" << endl;
 

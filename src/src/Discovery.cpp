@@ -9,6 +9,7 @@
 using namespace std;
 
 int Discovery::server() {
+    
     struct sockaddr_in clientAddr;
     socklen_t clientLen = sizeof(clientAddr);
     char buffer[MAX_BUFFER_SIZE];

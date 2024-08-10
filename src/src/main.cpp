@@ -18,8 +18,8 @@ void joinThreads(vector<thread>& threads) {
     }
 }
 
-void client(vector<thread>& threads, shared_ptr<Discovery> discovery, shared_ptr<Monitoring> monitoring, shared_ptr<Interface> interface);
-void server(vector<thread>& threads, shared_ptr<Discovery> discovery, shared_ptr<Monitoring> monitoring, shared_ptr<Interface> interface);
+void client(shared_ptr<Discovery> discovery, shared_ptr<Monitoring> monitoring, shared_ptr<Interface> interface);
+void server(shared_ptr<Discovery> discovery, shared_ptr<Monitoring> monitoring, shared_ptr<Interface> interface);
 
 int main(int agrc, char* agrv[]) {
 
@@ -41,39 +41,36 @@ int main(int agrc, char* agrv[]) {
     shared_ptr<Management> management = make_shared<Management>();
     shared_ptr<Interface> interface = make_shared<Interface>();
     
-    while(true) {
+    try {
+        if (isMaster) {
+            if (internalClock == -1) {
+                char hostName[1024];
+                gethostname(hostName, 1024);
+                string hostNameStr(hostName);
 
-        try {
-            Management management;
-            if (isMaster) {
-                if (internalClock == -1) {
-                    char hostName[1024];
-                    gethostname(hostName, 1024);
-                    string hostNameStr(hostName);
-
-                    Computer comp = management.createComputer(discovery->getIPAddress(), discovery->getMacAddress());
-                    comp.hostName = hostNameStr;
-                    management.addComputer(comp);
-                }
-                threads.push_back(thread(server, ref(threads), discovery, monitoring, interface));   //TODO
-                // threads.push_back(thread(&Discovery::server, discovery.get()));
-                // threads.push_back(thread(&Monitoring::server, monitoring.get()));
-                // threads.push_back(thread(&Interface::server, interface.get()));
-            } 
-            else {
-                threads.push_back(thread(client, ref(threads), discovery, monitoring, interface));      //TODO
-                // threads.push_back(thread(&Discovery::client, discovery.get()));
-                // threads.push_back(thread(&Monitoring::client, monitoring.get()));
-                // threads.push_back(thread(&Interface::client, interface.get()));
+                Computer comp = management->createComputer(discovery->getIPAddress(), discovery->getMacAddress());
+                comp.hostName = hostNameStr;
+                cout << comp.ipAddress << endl;
+                management->addComputer(comp);
             }
+            server(discovery, monitoring, interface);
+            // threads.push_back(thread(&Discovery::server, discovery.get()));
+            // threads.push_back(thread(&Monitoring::server, monitoring.get()));
+            // threads.push_back(thread(&Interface::server, interface.get()));
+        } 
+        else {
+            client(discovery, monitoring, interface);      //TODO
+            // threads.push_back(thread(&Discovery::client, discovery.get()));
+            // threads.push_back(thread(&Monitoring::client, monitoring.get()));
+            // threads.push_back(thread(&Interface::client, interface.get()));
         }
-        catch (const exception& e) {
-            cerr << "Exception: " << e.what() << endl;
-            return 1;
-        } catch (...) {
-            cerr << "Unknown exception occurred" << endl;
-            return 1;
-        }
+    }
+    catch (const exception& e) {
+        cerr << "Exception: " << e.what() << endl;
+        return 1;
+    } catch (...) {
+        cerr << "Unknown exception occurred" << endl;
+        return 1;
     }
 
     for (auto& t : threads) {
@@ -85,31 +82,29 @@ int main(int agrc, char* agrv[]) {
     return 0;
 }
 
-
-void client(vector<thread>& threads, shared_ptr<Discovery> discovery, shared_ptr<Monitoring> monitoring, shared_ptr<Interface> interface) {
-    threads.push_back(thread(&Discovery::client, discovery.get()));
-    threads.push_back(thread(&Monitoring::client, monitoring.get()));
-    threads.push_back(thread(&Interface::client, interface.get()));
+void client(shared_ptr<Discovery> discovery, shared_ptr<Monitoring> monitoring, shared_ptr<Interface> interface) {
+    vector<thread> threads;
+    threads.push_back(thread(&Discovery::client, discovery));
+    threads.push_back(thread(&Monitoring::client, monitoring));
+    threads.push_back(thread(&Interface::client, interface));
 
     joinThreads(threads);
-
-    threads.clear();
-
+    
     if (isMaster) {
-        server(threads, discovery, monitoring, interface);
+        server(discovery, monitoring, interface);
     }
 }
 
-void server(vector<thread>& threads, shared_ptr<Discovery> discovery, shared_ptr<Monitoring> monitoring, shared_ptr<Interface> interface) {
-    threads.push_back(thread(&Discovery::server, discovery.get()));
-    threads.push_back(thread(&Monitoring::server, monitoring.get()));
-    threads.push_back(thread(&Interface::server, interface.get()));
+void server(shared_ptr<Discovery> discovery, shared_ptr<Monitoring> monitoring, shared_ptr<Interface> interface) {
+    vector<thread> threads;
+    
+    threads.push_back(thread(&Discovery::server, discovery));
+    threads.push_back(thread(&Monitoring::server, monitoring));
+    threads.push_back(thread(&Interface::server, interface));
 
     joinThreads(threads);
 
-    threads.clear();
-    
     if (!isMaster) { // precisa atualizar o valor pro server antigo
-        client(threads, discovery, monitoring, interface);
+        client(discovery, monitoring, interface);
     }
 }
