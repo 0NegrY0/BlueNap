@@ -270,8 +270,8 @@ vector<char> Management::setMonitoringMessage() {
     return buffer;
 }
 
-void Management::receiveComputers(vector<char>& buffer) {
-    const char* currentPos = buffer.data();
+void Management::receiveComputers(char buffer[]) {
+    const char* currentPos = buffer;
     
     string message(currentPos);
     size_t pos = message.find(MONITORING_MESSAGE);

@@ -23,7 +23,7 @@ public:
     vector<Computer>receiveComputers(int socket);
     Computer deserialize(const char* data, size_t& bytesRead);
     vector<char> setMonitoringMessage();
-    void receiveComputers(vector<char>& buffer);
+    void receiveComputers(char buffer[]);
     Computer deserialize(const char* data, size_t& bytesRead);
 
 private:

@@ -54,13 +54,6 @@ int Monitoring::server() {
                 if (strcmp(buffer, MONITORING_MESSAGE_RESPONSE) == 0) {
                     management.updateStatus(computers[i].id, true);
                 }
-                if (isMessage(buffer, MONITORING_MESSAGE)) {
-                    management.receiveComputers(buffer);
-                    if (internalClock < message.internalclock){
-                            isMaster = false;
-                        }
-                    
-                }
             }
             close(sockfd);
         }
