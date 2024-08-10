@@ -18,33 +18,8 @@ void joinThreads(vector<thread>& threads) {
     }
 }
 
-void client(vector<thread>& threads, shared_ptr<Discovery> discovery, shared_ptr<Monitoring> monitoring, shared_ptr<Interface> interface) {
-    threads.push_back(thread(&Discovery::client, discovery.get()));
-    threads.push_back(thread(&Monitoring::client, monitoring.get()));
-    threads.push_back(thread(&Interface::client, interface.get()));
-
-    joinThreads(threads);
-
-    threads.clear();
-
-    if (isMaster) {
-        server(threads, discovery, monitoring, interface);
-    }
-}
-
-void server(vector<thread>& threads, shared_ptr<Discovery> discovery, shared_ptr<Monitoring> monitoring, shared_ptr<Interface> interface) {
-    threads.push_back(thread(&Discovery::server, discovery.get()));
-    threads.push_back(thread(&Monitoring::server, monitoring.get()));
-    threads.push_back(thread(&Interface::server, interface.get()));
-
-    joinThreads(threads);
-
-    threads.clear();
-    
-    if (!isMaster) { // precisa atualizar o valor pro server antigo
-        client(threads, discovery, monitoring, interface);
-    }
-}
+void client(vector<thread>& threads, shared_ptr<Discovery> discovery, shared_ptr<Monitoring> monitoring, shared_ptr<Interface> interface);
+void server(vector<thread>& threads, shared_ptr<Discovery> discovery, shared_ptr<Monitoring> monitoring, shared_ptr<Interface> interface);
 
 int main(int agrc, char* agrv[]) {
 
@@ -80,13 +55,13 @@ int main(int agrc, char* agrv[]) {
                     comp.hostName = hostNameStr;
                     management.addComputer(comp);
                 }
-                threads.push_back(thread(&server, discovery.get()));    //TODO
+                threads.push_back(thread(server, ref(threads), discovery, monitoring, interface));   //TODO
                 // threads.push_back(thread(&Discovery::server, discovery.get()));
                 // threads.push_back(thread(&Monitoring::server, monitoring.get()));
                 // threads.push_back(thread(&Interface::server, interface.get()));
             } 
             else {
-                threads.push_back(thread(&client, discovery.get()));     //TODO
+                threads.push_back(thread(client, ref(threads), discovery, monitoring, interface));      //TODO
                 // threads.push_back(thread(&Discovery::client, discovery.get()));
                 // threads.push_back(thread(&Monitoring::client, monitoring.get()));
                 // threads.push_back(thread(&Interface::client, interface.get()));
@@ -108,4 +83,33 @@ int main(int agrc, char* agrv[]) {
     }
     
     return 0;
+}
+
+
+void client(vector<thread>& threads, shared_ptr<Discovery> discovery, shared_ptr<Monitoring> monitoring, shared_ptr<Interface> interface) {
+    threads.push_back(thread(&Discovery::client, discovery.get()));
+    threads.push_back(thread(&Monitoring::client, monitoring.get()));
+    threads.push_back(thread(&Interface::client, interface.get()));
+
+    joinThreads(threads);
+
+    threads.clear();
+
+    if (isMaster) {
+        server(threads, discovery, monitoring, interface);
+    }
+}
+
+void server(vector<thread>& threads, shared_ptr<Discovery> discovery, shared_ptr<Monitoring> monitoring, shared_ptr<Interface> interface) {
+    threads.push_back(thread(&Discovery::server, discovery.get()));
+    threads.push_back(thread(&Monitoring::server, monitoring.get()));
+    threads.push_back(thread(&Interface::server, interface.get()));
+
+    joinThreads(threads);
+
+    threads.clear();
+    
+    if (!isMaster) { // precisa atualizar o valor pro server antigo
+        client(threads, discovery, monitoring, interface);
+    }
 }
