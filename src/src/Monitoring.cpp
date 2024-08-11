@@ -21,9 +21,10 @@ int Monitoring::server() {
             if (computers[i].isServer) {
                 continue;
             }
+
             int sockfd = createSocket();
             setSocketTimeout(sockfd, TIMEOUT_SEC);
-
+            
             string clientIp = computers[i].ipAddress;
             int clientPort = computers[i].port;
 
@@ -53,12 +54,30 @@ int Monitoring::server() {
                 }
             }
             else {
+                cout << "(Server - Monitoring) Recebi a mensagem: " << buffer << endl;
                 buffer[bytesReceived] = '\0'; // Adiciona um terminador nulo para evitar problemas com a comparação
                 if (strcmp(buffer, MONITORING_MESSAGE_RESPONSE) == 0) {
                     management.updateStatus(computers[i].id, true);
                 }
                 else if (isMessage(buffer, MONITORING_MESSAGE)) {
-                    management.receiveComputers(buffer);
+                    cout << "(Server - Monitoring) É mensagem de monitoramento!" << endl;
+                    const char* currentPos = buffer;
+    
+                    string message(currentPos);
+                    size_t pos = message.find(MONITORING_MESSAGE);
+                    if (pos == string::npos) {
+                        cerr << "Monitoring message not found" << endl;
+                        return;
+                    }
+
+                    int clockReceived = stoi(message.substr(pos + strlen(MONITORING_MESSAGE)));
+                    if (clockReceived <= internalClock) {
+                        strcpy(buffer, NEW_LEADER_MESSAGE);
+                        sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
+                    }
+                }
+                else if (isMessage(buffer, NEW_LEADER_MESSAGE)) {
+                    isMaster = 0;
                 }
             }
             close(sockfd);
@@ -74,7 +93,6 @@ int Monitoring::client() {
     int sockfd = createSocket();
     setSocketTimeout(sockfd, 15);
 
-    //struct sockaddr_in localAddr = configureAddress(serverIp, myPort);
     struct sockaddr_in localAddr;
     socklen_t localLen = sizeof(localAddr);
 
@@ -90,7 +108,7 @@ int Monitoring::client() {
     }
 
     char buffer[MAX_BUFFER_SIZE];
-    struct sockaddr_in serverAddr = configureAdress(serverIp, serverPort); //mudar para serverPort
+    struct sockaddr_in serverAddr = configureAdress(serverIp, serverPort);
     socklen_t serverLen = sizeof(serverAddr);
     Management management;
     
