@@ -104,14 +104,8 @@ int Interface::server() {
 
 
 int Interface::client() {
-    string macAddress = getMacAddress();
-    string ipAddress = getIPAddress();
-    char hostName[1024];
-    gethostname(hostName, 1024);
-    string input;
-
     Management management;
-
+    sleep(1);
     // Testar isso ai 
     while (!shouldExit && !isMaster){
         cout <<
@@ -141,19 +135,51 @@ int Interface::client() {
         "....======+=:........#:........=++=====......\n"
         "........-=======:..+#%#*-..========:.........\n"
         "................................BlueNapClient\n" << endl;
-        cout <<"You are a Client" <<endl;
-        cout <<"Client Information:\t\tHostname: "<<hostName<<"\t\t MAC Adress: "<<macAddress<<"\t\tIP Adress: "<<ipAddress<<endl;
-        cout <<"Leader information:\t\tHostname: "<<serverHostName<<"\t\tMAC Adress: "<<serverMac<<"\t\tIP Adress: "<<serverIp<<endl;
-        cout <<"Enter 'EXIT' to leave"<<endl;
-        getline(cin, input);
-        if (input == "EXIT"){
-            management.askToCloseConnection();
-            sleep(1);
-            mtx.lock();
-            shouldExit = true;
-            mtx.unlock();
+        mtx.lock();
+        cout << endl << "================ Computers in Network ===============" << endl;
+        for (size_t i=0; i<computers.size(); i++){
+            if (!computers[i].isServer){
+                cout << "ID: "<<computers[i].id<<"\t\tHostname: "<<computers[i].hostName<<"\t\tMAC Adress:"<<computers[i].macAddress<<"\t\tIP Adress: "<<computers[i].ipAddress<<"\t\tIs awake: ";
+                if (computers[i].isAwake){
+                    cout << "Yes"<<endl;
+                }
+                else{
+                    cout << "No"<<endl;
+                }
+            }
+            else{
+                cout << endl << "============\\/ Leader Machine \\/============" << endl;
+                cout << "ID: "<<computers[i].id<<"\t\tHostname: "<<computers[i].hostName<<"\t\tMAC Adress:"<<computers[i].macAddress<<"\t\tIP Adress: "<<computers[i].ipAddress;
+                cout << endl << "============/\\ Leader Machine /\\============" << endl;
+            }        
         }
-        system("clear");
+        mtx.unlock();
+        
+        cout << endl << "You are a Client" << endl; 
+        cout << "Enter 'EXIT' to leave, Enter anything to update" << endl;
+
+        fd_set fds;
+        FD_ZERO(&fds);
+        FD_SET(STDIN_FILENO, &fds);
+
+        struct timeval tv;
+        tv.tv_sec = 5;
+        tv.tv_usec = 0;
+
+        int ret = select(STDIN_FILENO + 1, &fds, nullptr, nullptr, &tv);
+
+        if (ret > 0){
+            string input; 
+            getline(cin, input);
+                if (input == "EXIT"){
+                management.askToCloseConnection();
+                sleep(1);
+                mtx.lock();
+                shouldExit = true;
+                mtx.unlock();
+                }      
+            }
+            system("clear");
     }
     return 0;
 }
