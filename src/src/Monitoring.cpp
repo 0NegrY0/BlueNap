@@ -24,6 +24,7 @@ int Monitoring::server() {
 
             int sockfd = createSocket();
             setSocketTimeout(sockfd, TIMEOUT_SEC);
+            listenAtPort(sockfd, myPort);
             
             string clientIp = computers[i].ipAddress;
             int clientPort = computers[i].port;
