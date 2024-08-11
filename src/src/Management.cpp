@@ -165,7 +165,7 @@ void Management::announceElectionResult() {
         }
         else if (comp.isServer) {
             comp.isServer = false;
-            comp.isAwake = false;
+            //comp.isAwake = false;
         }
         if (comp.isAwake && comp.id != myPort - PORT_DISCOVERY) {
             int sockfd = createSocket();
