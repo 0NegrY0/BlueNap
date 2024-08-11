@@ -18,7 +18,6 @@ int Monitoring::server() {
     Management management;
     while (isMaster) {
         for (size_t i = 0; i < computers.size(); i++) {
-            cout << "Rodei" << endl;
             if (computers[i].id == myPort - PORT_DISCOVERY) {
                 continue;
             }
@@ -40,6 +39,7 @@ int Monitoring::server() {
             }
 
             sendto(sockfd, send.data(), send.size(), 0, (struct sockaddr*)&clientAddr, clientLen);
+            cout << "Vou enviar mensagem para " << clientIp << " na porta " << clientPort << endl;
 
             clientAddr = configureAdress(clientIp, clientPort);
 
