@@ -94,11 +94,12 @@ int Monitoring::client() {
     cout << "Server IP: " << serverIp << endl;
     cout << "Server Port: " << PORT_DISCOVERY << endl;
     socklen_t serverLen = sizeof(serverAddr);
-
+    cout << "aaaaa";
     char buffer[MAX_BUFFER_SIZE];
     Management management;
+    cout << "bbb";
     
-    while(true) {
+    while(!shouldExit && !isMaster) {
         cout << "nao tem!";
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, &serverLen);
         
