@@ -98,7 +98,7 @@ int Monitoring::client() {
     char buffer[MAX_BUFFER_SIZE];
     Management management;
     
-    while(!shouldExit && !isMaster) {
+    while(true) {
         cout << "nao tem!";
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, &serverLen);
         
