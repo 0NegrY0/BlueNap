@@ -31,13 +31,14 @@ int Monitoring::server() {
             socklen_t clientLen = sizeof(clientAddr);
 
             vector<char> send = management.setMonitoringMessage();
+            cout << "Send: " << send.data() << endl;
 
             // // Ensure the vector is null-terminated if necessary
             // if (send.empty() || send.back() != '\0') {
             //     send.push_back('\0');
             // }
 
-            sendto(sockfd, send.data(), send.size(), 0, (struct sockaddr*)&clientAddr, clientLen);
+            cout << "Status envio:" << sendto(sockfd, send.data(), send.size(), 0, (struct sockaddr*)&clientAddr, clientLen);
 
             clientAddr = configureAdress(clientIp, clientPort);
 
