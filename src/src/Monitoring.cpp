@@ -16,18 +16,17 @@ int Monitoring::server() {
 
     char buffer[MAX_BUFFER_SIZE];
     Management management;
-    int sockfd = createSocket();
-    setSocketTimeout(sockfd, TIMEOUT_SEC);
-
-    listenAtPort(sockfd, 0);
 
     while (isMaster) {
         for (size_t i = 0; i < computers.size(); i++) {
-            int sockfd = createSocket();
+            
 
             if (computers[i].id == myPort - PORT_DISCOVERY) {
                 continue;
             }
+            int sockfd = createSocket();
+            setSocketTimeout(sockfd, TIMEOUT_SEC);
+            listenAtPort(sockfd, 0);
 
             string clientIp = computers[i].ipAddress;
             int clientPort = computers[i].port;
