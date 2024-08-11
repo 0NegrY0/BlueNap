@@ -61,7 +61,23 @@ int Monitoring::server() {
                 }
                 else if (isMessage(buffer, MONITORING_MESSAGE)) {
                     cout << "(Server - Monitoring) É mensagem de monitoramento!" << endl;
-                    management.receiveComputers(buffer);
+                    const char* currentPos = buffer;
+    
+                    string message(currentPos);
+                    size_t pos = message.find(MONITORING_MESSAGE);
+                    if (pos == string::npos) {
+                        cerr << "Monitoring message not found" << endl;
+                        return;
+                    }
+
+                    int clockReceived = stoi(message.substr(pos + strlen(MONITORING_MESSAGE)));
+                    if (clockReceived <= internalClock) {
+                        strcpy(buffer, NEW_LEADER_MESSAGE);
+                        sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
+                    }
+                }
+                else if (isMessage(buffer, NEW_LEADER_MESSAGE)) {
+                    isMaster = 0;
                 }
             }
             close(sockfd);
