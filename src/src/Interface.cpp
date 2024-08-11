@@ -94,7 +94,12 @@ int Interface::server() {
                     cout << "ID invalido";
                 }
                 else{
-                    management.wakeOnLan(computers[id - 1].macAddress, computers[id - 1].ipAddress);
+                    for (auto& c : computers){
+                        if (c.id == id){
+                            management.wakeOnLan(c.macAddress, c.ipAddress);
+                        }
+                    }
+                    
                 }
             }
         }
