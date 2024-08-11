@@ -144,7 +144,6 @@ int Interface::client() {
         "................................BlueNapClient\n" << endl;
         cout <<"You are a Client" <<endl;
         cout <<"Client Information:\t\tHostname: "<<hostName<<"\t\t MAC Adress: "<<macAddress<<"\t\tIP Adress: "<<ipAddress<<endl;
-        sleep(10);
         cout <<"Leader information:\t\tHostname: "<<serverHostName<<"\t\tMAC Adress: "<<serverMac<<"\t\tIP Adress: "<<serverIp<<endl;
         cout <<"Enter 'EXIT' to leave"<<endl;
         getline(cin, input);
