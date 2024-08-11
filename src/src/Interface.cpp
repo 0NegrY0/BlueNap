@@ -154,7 +154,7 @@ int Interface::client() {
             shouldExit = true;
             mtx.unlock();
         }
-        //system("clear");
+        system("clear");
     }
     return 0;
 }

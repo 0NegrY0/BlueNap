@@ -103,9 +103,7 @@ int Monitoring::client() {
         }
 
         buffer[bytesReceived] = '\0';
-        cout << "Recebi:" << buffer << endl;
         if (isMessage(buffer, MONITORING_MESSAGE)) {
-            cout << "Recebi mensagem de monitoramento" << endl;
             management.receiveComputers(buffer);            //TODO: Implementar a função receiveComputers
             strcpy(buffer, MONITORING_MESSAGE_RESPONSE);
             sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, serverLen);
@@ -113,6 +111,7 @@ int Monitoring::client() {
 
         else if (isElectionMessage(buffer)) {
             cout << "Recebi mensagem de eleicao" << endl;
+            cout << "Mensagem: " << buffer << endl;
             string message(buffer);
 
             size_t maxIdPos = message.find(ELECTION_MESSAGE);
@@ -136,6 +135,7 @@ int Monitoring::client() {
         else if (isMessage(buffer, ELECTION_RESULT)) {
             cout << "Recebi mensagem de resultado de eleição" << endl;
             string message(buffer);
+            cout << "Mensagem: " << message << endl;
 
             size_t hostNamePos = message.find("Host Name:");
             size_t macPos = message.find("Host Mac:");
@@ -155,7 +155,7 @@ int Monitoring::client() {
 
             mtx.lock();
             serverIp = inet_ntoa(serverAddr.sin_addr);
-            //serverPort = ntohs(serverAddr.sin_port);
+            serverPort = ntohs(serverAddr.sin_port);
             serverHostName = hostName;
             serverMac = hostMac;
             mtx.unlock();
