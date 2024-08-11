@@ -57,6 +57,9 @@ int Monitoring::server() {
                 if (strcmp(buffer, MONITORING_MESSAGE_RESPONSE) == 0) {
                     management.updateStatus(computers[i].id, true);
                 }
+                else if (isMessage(buffer, MONITORING_MESSAGE)) {
+                    management.receiveComputers(buffer);
+                }
             }
             close(sockfd);
         }
