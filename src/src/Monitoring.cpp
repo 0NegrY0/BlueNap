@@ -65,10 +65,6 @@ int Monitoring::server() {
     
                     string message(currentPos);
                     size_t pos = message.find(MONITORING_MESSAGE);
-                    if (pos == string::npos) {
-                        cerr << "Monitoring message not found" << endl;
-                        return;
-                    }
 
                     int clockReceived = stoi(message.substr(pos + strlen(MONITORING_MESSAGE)));
                     if (clockReceived <= internalClock) {
