@@ -47,9 +47,9 @@ int Monitoring::server() {
 
             int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
             if (bytesReceived < 0) {
-                cout << "Recebi 0 bytes" << endl;
+                //cout << "Recebi 0 bytes" << endl;
                 if (isTimeoutError()) {
-                    cout << "Erro de Timeout" << endl;
+                    //cout << "Erro de Timeout" << endl;
                     management.updateStatus(computers[i].id, false);
                 }
                 else {
@@ -59,13 +59,13 @@ int Monitoring::server() {
                 }
             }
             else {
-                cout << "(Server - Monitoring) Recebi a mensagem: " << buffer << endl;
+                //cout << "(Server - Monitoring) Recebi a mensagem: " << buffer << endl;
                 buffer[bytesReceived] = '\0'; // Adiciona um terminador nulo para evitar problemas com a comparação
                 if (strcmp(buffer, MONITORING_MESSAGE_RESPONSE) == 0) {
                     management.updateStatus(computers[i].id, true);
                 }
                 else if (isMessage(buffer, MONITORING_MESSAGE)) {
-                    cout << "(Server - Monitoring) É mensagem de monitoramento!" << endl;
+                    //cout << "(Server - Monitoring) É mensagem de monitoramento!" << endl;
                     const char* currentPos = buffer;
     
                     string message(currentPos);
