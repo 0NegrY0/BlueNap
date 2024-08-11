@@ -57,6 +57,7 @@ int Monitoring::server() {
             }
             close(sockfd);
         }
+        sleep(2);
     }
     return 0;
 }
@@ -83,7 +84,7 @@ int Monitoring::client() {
         return -1;
     }
 
-    struct sockaddr_in serverAddr = configureAdress(serverIp, PORT_DISCOVERY);
+    struct sockaddr_in serverAddr = configureAdress(serverIp, PORT_DISCOVERY); //mudar para serverPort
     socklen_t serverLen = sizeof(serverAddr);
 
     char buffer[MAX_BUFFER_SIZE];
@@ -103,13 +104,16 @@ int Monitoring::client() {
         }
 
         buffer[bytesReceived] = '\0';
+        cout << "Recebi:" << buffer << endl;
         if (isMessage(buffer, MONITORING_MESSAGE)) {
+            cout << "Recebi mensagem de monitoramento" << endl;
             management.receiveComputers(buffer);            //TODO: Implementar a função receiveComputers
             strcpy(buffer, MONITORING_MESSAGE_RESPONSE);
             sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, serverLen);
         }
 
         else if (isElectionMessage(buffer)) {
+            cout << "Recebi mensagem de eleicao" << endl;
             string message(buffer);
 
             size_t maxIdPos = message.find(ELECTION_MESSAGE);
@@ -126,11 +130,12 @@ int Monitoring::client() {
                 snprintf(responseMessage, MAX_BUFFER_SIZE, "%s", response.c_str());
                 sendto(sockfd, responseMessage, strlen(responseMessage), 0, (struct sockaddr*)&serverAddr, serverLen);
                 sleep(2);
-                management.startElection(myPort - PORT_DISCOVERY);
+                management.startElection(myId);
             }
         } 
 
         else if (isMessage(buffer, ELECTION_RESULT)) {
+            cout << "Recebi mensagem de resultado de eleição" << endl;
             string message(buffer);
 
             size_t hostNamePos = message.find("Host Name:");
