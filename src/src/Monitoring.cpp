@@ -54,7 +54,6 @@ int Monitoring::server() {
                 }
             }
             else {
-                cout << "(Server - Monitoring) Recebi a mensagem: " << buffer << endl;
                 buffer[bytesReceived] = '\0'; // Adiciona um terminador nulo para evitar problemas com a comparação
                 if (strcmp(buffer, MONITORING_MESSAGE_RESPONSE) == 0) {
                     management.updateStatus(computers[i].id, true);
