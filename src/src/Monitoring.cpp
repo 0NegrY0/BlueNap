@@ -33,12 +33,12 @@ int Monitoring::server() {
             vector<char> send = management.setMonitoringMessage();
             cout << "Send: " << send.data() << endl;
 
-            // // Ensure the vector is null-terminated if necessary
-            // if (send.empty() || send.back() != '\0') {
-            //     send.push_back('\0');
-            // }
+            //Ensure the vector is null-terminated if necessary
+            if (send.empty() || send.back() != '\0') {
+                send.push_back('\0');
+            }
 
-            cout << "Status envio:" << sendto(sockfd, send.data(), send.size(), 0, (struct sockaddr*)&clientAddr, clientLen);
+            sendto(sockfd, send.data(), send.size(), 0, (struct sockaddr*)&clientAddr, clientLen);
 
             clientAddr = configureAdress(clientIp, clientPort);
 
@@ -81,6 +81,7 @@ int Monitoring::client() {
     localAddr.sin_family = AF_INET;
     localAddr.sin_addr.s_addr = INADDR_ANY;
     localAddr.sin_port = htons(myPort);
+    cout << "Porta: " << myPort << endl;
 
     if (bind(sockfd, (struct sockaddr*)&localAddr, localLen) < 0) {
         cerr << "Error in bind(): " << strerror(errno) << endl;
@@ -89,12 +90,15 @@ int Monitoring::client() {
     }
 
     struct sockaddr_in serverAddr = configureAdress(serverIp, PORT_DISCOVERY); //mudar para serverPort
+    cout << "Server IP: " << serverIp << endl;
+    cout << "Server Port: " << PORT_DISCOVERY << endl;
     socklen_t serverLen = sizeof(serverAddr);
 
     char buffer[MAX_BUFFER_SIZE];
     Management management;
     
     while(!shouldExit && !isMaster) {
+        char buffer[MAX_BUFFER_SIZE];
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, &serverLen);
 
         if (bytesReceived < 0) {
