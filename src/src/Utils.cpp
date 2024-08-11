@@ -15,7 +15,7 @@ using namespace std;
 vector<Computer> computers;
 mutex mtx;
 string serverIp = "";
-int serverPort = 0;
+int serverPort = 40000;
 string serverHostName = "";
 string serverMac = "";
 int myPort = 0;
