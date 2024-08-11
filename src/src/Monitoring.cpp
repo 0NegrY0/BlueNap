@@ -18,7 +18,8 @@ int Monitoring::server() {
     Management management;
     while (isMaster) {
         for (size_t i = 0; i < computers.size(); i++) {
-            if (computers[i].isServer) {
+            cout << "Rodei" << endl;
+            if (computers[i].id == myPort - PORT_DISCOVERY) {
                 continue;
             }
 
