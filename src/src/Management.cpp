@@ -160,9 +160,15 @@ void Management::announceElectionResult() {
     snprintf(electionResult, MAX_BUFFER_SIZE, "%s", response.c_str());
 
     for (auto& comp : computers) {
-        if (comp.isAwake) {
+        if (comp.id == myPort - PORT_DISCOVERY) {
+            comp.isServer = true;
+        }
+        else if (comp.isServer) {
+            comp.isServer = false;
+        }
+        if (comp.isAwake && comp.id != myPort - PORT_DISCOVERY) {
             int sockfd = createSocket();
-
+            
             struct sockaddr_in clientAddr = configureAdress(comp.ipAddress, comp.port);
             socklen_t clientLen = sizeof(clientAddr);
 
