@@ -88,7 +88,7 @@ int Interface::server() {
                 cout << "Enter the ID of the client you want to awake: ";
                 getline(cin, input);
 
-                size_t id = stoi(input);
+                int id = stoi(input);
                 
                 for (auto& c : computers){
                     if (c.id == id){
