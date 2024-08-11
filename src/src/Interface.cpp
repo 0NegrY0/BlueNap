@@ -92,7 +92,6 @@ int Interface::server() {
                 
                 for (auto& c : computers){
                     if (c.id == id){
-                        cout << c.macAddress << " " << c.ipAddress << endl;
                         management.wakeOnLan(c.macAddress, c.ipAddress);
                     }
                 }         

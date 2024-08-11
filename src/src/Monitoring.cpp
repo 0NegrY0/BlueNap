@@ -57,7 +57,6 @@ int Monitoring::server() {
             }
             close(sockfd);
         }
-        sleep(2);
     }
     return 0;
 }
@@ -67,7 +66,7 @@ int Monitoring::client() {
     while (serverIp.empty());
 
     int sockfd = createSocket();
-    setSocketTimeout(sockfd, 10);
+    setSocketTimeout(sockfd, 15);
 
     //struct sockaddr_in localAddr = configureAddress(serverIp, myPort);
     struct sockaddr_in localAddr;
