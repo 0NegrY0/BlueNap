@@ -15,6 +15,7 @@ int Discovery::server() {
     char buffer[MAX_BUFFER_SIZE];
     int sockfd = createSocket();
 
+    cout << "Minha porta: " << myPort << endl;
     listenAtPort(sockfd, myPort);
     Management management;
 
