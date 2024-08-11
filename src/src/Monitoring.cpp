@@ -24,6 +24,9 @@ int Monitoring::server() {
             string clientIp = computers[i].ipAddress;
             int clientPort = computers[i].port;
 
+            cout << "Client IP: " << clientIp << endl;
+            cout << "Client Port: " << clientPort << endl;
+
             struct sockaddr_in clientAddr = configureAdress(clientIp, clientPort);
             socklen_t clientLen = sizeof(clientAddr);
 
