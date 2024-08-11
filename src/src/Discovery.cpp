@@ -15,11 +15,11 @@ int Discovery::server() {
     char buffer[MAX_BUFFER_SIZE];
     int sockfd = createSocket();
 
-    cout << "Minha porta: " << myPort << endl;
     listenAtPort(sockfd, myPort);
     Management management;
 
     while (isMaster) {
+        cout << "Minha porta: " << myPort << endl;
         memset(buffer, 0, sizeof(buffer));
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
         if (bytesReceived < 0) {
