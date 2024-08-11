@@ -90,14 +90,16 @@ int Monitoring::client() {
         return -1;
     }
 
-    struct sockaddr_in serverAddr = configureAdress(serverIp, PORT_DISCOVERY); //mudar para serverPort
-    cout << "Server IP: " << serverIp << endl;
-    cout << "Server Port: " << PORT_DISCOVERY << endl;
-    socklen_t serverLen = sizeof(serverAddr);
-    cout << "aaaaa";
     char buffer[MAX_BUFFER_SIZE];
+    struct sockaddr_in serverAddr = configureAdress(serverIp, serverPort); //mudar para serverPort
+    socklen_t serverLen = sizeof(serverAddr);
     Management management;
-    cout << "bbb";
+    cout << "Should exit" << shouldExit << endl;
+    cout << "Is master" << isMaster << endl;
+    /*cout << "Server IP: " << serverIp << endl;
+    cout << "Server Port: " << PORT_DISCOVERY << endl;
+    cout << "aaaaa";
+    cout << "bbb";*/
     
     while(!shouldExit && !isMaster) {
         cout << "nao tem!";
