@@ -24,22 +24,17 @@ int Monitoring::server() {
             string clientIp = computers[i].ipAddress;
             int clientPort = computers[i].port;
 
-            cout << "Client IP: " << clientIp << endl;
-            cout << "Client Port: " << clientPort << endl;
-
             struct sockaddr_in clientAddr = configureAdress(clientIp, clientPort);
             socklen_t clientLen = sizeof(clientAddr);
 
             vector<char> send = management.setMonitoringMessage();
-            cout << "Send: " << send.data() << endl;
 
             //Ensure the vector is null-terminated if necessary
             if (send.empty() || send.back() != '\0') {
                 send.push_back('\0');
             }
-            char buffer[MAX_BUFFER_SIZE];
-            strcpy(buffer, MONITORING_MESSAGE);
-            sendto(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, clientLen);
+
+            sendto(sockfd, send.data(), send.size(), 0, (struct sockaddr*)&clientAddr, clientLen);
 
             clientAddr = configureAdress(clientIp, clientPort);
 
@@ -82,7 +77,6 @@ int Monitoring::client() {
     localAddr.sin_family = AF_INET;
     localAddr.sin_addr.s_addr = INADDR_ANY;
     localAddr.sin_port = htons(myPort);
-    cout << "Porta: " << myPort << endl;
 
     if (bind(sockfd, (struct sockaddr*)&localAddr, localLen) < 0) {
         cerr << "Error in bind(): " << strerror(errno) << endl;
@@ -94,15 +88,8 @@ int Monitoring::client() {
     struct sockaddr_in serverAddr = configureAdress(serverIp, serverPort); //mudar para serverPort
     socklen_t serverLen = sizeof(serverAddr);
     Management management;
-    cout << "Should exit" << shouldExit << endl;
-    cout << "Is master" << isMaster << endl;
-    /*cout << "Server IP: " << serverIp << endl;
-    cout << "Server Port: " << PORT_DISCOVERY << endl;
-    cout << "aaaaa";
-    cout << "bbb";*/
     
     while(!shouldExit && !isMaster) {
-        cout << "nao tem!";
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, &serverLen);
         
         if (bytesReceived < 0) {
