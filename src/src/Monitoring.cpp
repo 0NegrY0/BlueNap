@@ -37,8 +37,9 @@ int Monitoring::server() {
             if (send.empty() || send.back() != '\0') {
                 send.push_back('\0');
             }
-
-            sendto(sockfd, send.data(), send.size(), 0, (struct sockaddr*)&clientAddr, clientLen);
+            char buffer[MAX_BUFFER_SIZE];
+            strcpy(buffer, MONITORING_MESSAGE);
+            sendto(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, clientLen);
 
             clientAddr = configureAdress(clientIp, clientPort);
 
@@ -98,9 +99,9 @@ int Monitoring::client() {
     Management management;
     
     while(!shouldExit && !isMaster) {
-        char buffer[MAX_BUFFER_SIZE];
+        cout << "nao tem!";
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, &serverLen);
-
+        
         if (bytesReceived < 0) {
             if (isTimeoutError()) {
                 management.startElection(myPort - PORT_DISCOVERY);
