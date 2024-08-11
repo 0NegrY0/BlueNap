@@ -39,13 +39,14 @@ int Monitoring::server() {
             }
 
             sendto(sockfd, send.data(), send.size(), 0, (struct sockaddr*)&clientAddr, clientLen);
-            cout << "Vou enviar mensagem para " << clientIp << " na porta " << clientPort << endl;
 
             clientAddr = configureAdress(clientIp, clientPort);
 
             int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
             if (bytesReceived < 0) {
+                cout << "Recebi 0 bytes" << endl;
                 if (isTimeoutError()) {
+                    cout << "Erro de Timeout" << endl;
                     management.updateStatus(computers[i].id, false);
                 }
                 else {
