@@ -23,7 +23,7 @@ int Monitoring::server() {
 
     while (isMaster) {
         for (size_t i = 0; i < computers.size(); i++) {
-            //int sockfd = createSocket();
+            int sockfd = createSocket();
 
             if (computers[i].id == myPort - PORT_DISCOVERY) {
                 continue;
