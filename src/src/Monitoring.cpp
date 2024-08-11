@@ -18,14 +18,19 @@ int Monitoring::server() {
     Management management;
     while (isMaster) {
         for (size_t i = 0; i < computers.size(); i++) {
+            int sockfd = createSocket();
+
             if (computers[i].id == myPort - PORT_DISCOVERY) {
+                setSocketTimeout(sockfd, 2);
+                struct sockaddr_in clientAddr;
+                socklen_t clientLen = sizeof(clientAddr);
+                int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
+                cout << "Recebi: " << buffer << endl;
                 continue;
             }
 
-            int sockfd = createSocket();
             setSocketTimeout(sockfd, TIMEOUT_SEC);
-            listenAtPort(sockfd, myPort);
-            
+
             string clientIp = computers[i].ipAddress;
             int clientPort = computers[i].port;
 
@@ -42,6 +47,8 @@ int Monitoring::server() {
             sendto(sockfd, send.data(), send.size(), 0, (struct sockaddr*)&clientAddr, clientLen);
 
             clientAddr = configureAdress(clientIp, clientPort);
+
+            memset(buffer, 0, MAX_BUFFER_SIZE);
 
             int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
             if (bytesReceived < 0) {
