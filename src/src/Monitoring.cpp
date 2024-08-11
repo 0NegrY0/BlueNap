@@ -16,20 +16,18 @@ int Monitoring::server() {
 
     char buffer[MAX_BUFFER_SIZE];
     Management management;
+    int sockfd = createSocket();
+    setSocketTimeout(sockfd, TIMEOUT_SEC);
+
+    listenAtPort(sockfd, 0);
+
     while (isMaster) {
         for (size_t i = 0; i < computers.size(); i++) {
-            int sockfd = createSocket();
+            //int sockfd = createSocket();
 
             if (computers[i].id == myPort - PORT_DISCOVERY) {
-                setSocketTimeout(sockfd, 2);
-                struct sockaddr_in clientAddr;
-                socklen_t clientLen = sizeof(clientAddr);
-                int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
-                cout << "Recebi: " << buffer << endl;
                 continue;
             }
-
-            setSocketTimeout(sockfd, TIMEOUT_SEC);
 
             string clientIp = computers[i].ipAddress;
             int clientPort = computers[i].port;
