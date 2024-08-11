@@ -90,20 +90,15 @@ int Interface::server() {
 
                 size_t id = stoi(input);
                 
-                if (id < 2 || id > computers.size()){
-                    cout << "ID invalido";
-                }
-                else{
-                    for (auto& c : computers){
-                        if (c.id == id){
-                            management.wakeOnLan(c.macAddress, c.ipAddress);
-                        }
+                for (auto& c : computers){
+                    if (c.id == id){
+                        cout << c.macAddress << " " << c.ipAddress << endl;
+                        management.wakeOnLan(c.macAddress, c.ipAddress);
                     }
-                    
-                }
+                }         
             }
         }
-        //system("clear");
+        system("clear");
     }
     return 0;
 }
