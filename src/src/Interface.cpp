@@ -78,7 +78,7 @@ int Interface::server() {
             cin >> input;
 
             int id = stoi(input);
-            
+            cout << "Vou acordar o computador de id: " << id << endl;
             for (auto& c : computers){
                 if (c.id == id){
                     management.wakeOnLan(c.macAddress, c.ipAddress);
