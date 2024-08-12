@@ -158,28 +158,17 @@ int Interface::client() {
         cout << endl << "You are a Client" << endl; 
         cout << "Enter 'EXIT' to leave, Enter anything to update" << endl;
 
-        fd_set fds;
-        FD_ZERO(&fds);
-        FD_SET(STDIN_FILENO, &fds);
-
-        struct timeval tv;
-        tv.tv_sec = 5;
-        tv.tv_usec = 0;
-
-        int ret = select(STDIN_FILENO + 1, &fds, nullptr, nullptr, &tv);
-
-        if (ret > 0){
-            string input; 
-            getline(cin, input);
-                if (input == "EXIT"){
-                management.askToCloseConnection();
-                sleep(1);
-                mtx.lock();
-                shouldExit = true;
-                mtx.unlock();
-                }      
-            }
-            system("clear");
+        string input; 
+        getline(cin, input);
+            if (input == "EXIT"){
+            management.askToCloseConnection();
+            sleep(1);
+            mtx.lock();
+            shouldExit = true;
+            mtx.unlock();
+            }      
+        
+        system("clear");
     }
     return 0;
 }
