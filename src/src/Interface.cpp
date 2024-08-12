@@ -71,32 +71,21 @@ int Interface::server() {
         cout << endl << "You are the Leader" << endl; 
         cout << "Enter 1 to wake a client, Enter anything to update" << endl;
 
-        fd_set fds;
-        FD_ZERO(&fds);
-        FD_SET(STDIN_FILENO, &fds);
-
-        struct timeval tv;
-        tv.tv_sec = 2;
-        tv.tv_usec = 0;
-
-        int ret = select(STDIN_FILENO + 1, &fds, nullptr, nullptr, &tv);
-
-        if (ret > 0){
-            string input; 
+        string input; 
+        getline(cin, input);
+        if (input == "1"){
+            cout << "Enter the ID of the client you want to awake: ";
             getline(cin, input);
-            if (input == "1"){
-                cout << "Enter the ID of the client you want to awake: ";
-                getline(cin, input);
 
-                int id = stoi(input);
-                
-                for (auto& c : computers){
-                    if (c.id == id){
-                        management.wakeOnLan(c.macAddress, c.ipAddress);
-                    }
-                }         
-            }
+            int id = stoi(input);
+            
+            for (auto& c : computers){
+                if (c.id == id){
+                    management.wakeOnLan(c.macAddress, c.ipAddress);
+                }
+            }         
         }
+        
         system("clear");
     }
     return 0;

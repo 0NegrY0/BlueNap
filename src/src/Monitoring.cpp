@@ -39,7 +39,7 @@ int Monitoring::server() {
                 send.push_back('\0');
             }
 
-            sendto(sockfd, send.data(), send.size(), 0, (struct sockaddr*)&clientAddr, clientLen);
+            cout << "Resultado do envio" << sendto(sockfd, send.data(), send.size(), 0, (struct sockaddr*)&clientAddr, clientLen) << endl;
 
             clientAddr = configureAdress(clientIp, clientPort);
 
