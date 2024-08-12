@@ -17,8 +17,6 @@ int Monitoring::server() {
     char buffer[MAX_BUFFER_SIZE];
     Management management;
 
-    
-
     while (isMaster) {
         for (size_t i = 0; i < computers.size(); i++) {
             
@@ -83,9 +81,10 @@ int Monitoring::server() {
                     isMaster = 0;
                 }
             }
+            close(sockfd);
         }
     }
-    close(sockfd);
+    
     return 0;
 }
     
