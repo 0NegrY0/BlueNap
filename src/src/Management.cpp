@@ -161,10 +161,14 @@ void Management::announceElectionResult() {
 
     for (auto& comp : computers) {
         if (comp.id == myPort - PORT_DISCOVERY) {
+            mtx.lock();
             comp.isServer = true;
+            mtx.unlock();
         }
         else if (comp.isServer) {
+            mtx.lock();
             comp.isServer = false;
+            mtx.unlock();
             //comp.isAwake = false;
         }
         if (comp.isAwake && comp.id != myPort - PORT_DISCOVERY) {
