@@ -93,7 +93,7 @@ int Monitoring::client() {
 
     while (serverIp.empty());
 
-    int sockfd = createSocket();
+    int sockfd = createSocket(); // recriar o socket se der erro.
     setSocketTimeout(sockfd, 15);
 
     struct sockaddr_in localAddr;
