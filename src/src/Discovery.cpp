@@ -19,7 +19,6 @@ int Discovery::server() {
     Management management;
 
     while (isMaster) {
-        cout << "Minha porta: " << myPort << endl;
         memset(buffer, 0, sizeof(buffer));
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
         if (bytesReceived < 0) {
