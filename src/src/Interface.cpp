@@ -72,10 +72,10 @@ int Interface::server() {
         cout << "Enter 1 to wake a client, Enter anything to update" << endl;
 
         string input; 
-        getline(cin, input);
+        cin >> input;
         if (input == "1"){
             cout << "Enter the ID of the client you want to awake: ";
-            getline(cin, input);
+            cin >> input;
 
             int id = stoi(input);
             
