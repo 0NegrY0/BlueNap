@@ -16,10 +16,10 @@ int Monitoring::server() {
 
     char buffer[MAX_BUFFER_SIZE];
     Management management;
-
+    int sockfd = createSocket();
+    setSocketTimeout(sockfd, TIMEOUT_SEC);
     while (isMaster) {
-        int sockfd = createSocket();
-        setSocketTimeout(sockfd, TIMEOUT_SEC);
+        
         for (size_t i = 0; i < computers.size(); i++) {
             
             if (computers[i].id == myPort - PORT_DISCOVERY) {
@@ -55,6 +55,8 @@ int Monitoring::server() {
                 else {
                     cerr << "Error in recvfrom(): " << strerror(errno) << endl;
                     close(sockfd);
+                    sockfd = createSocket();
+                    setSocketTimeout(sockfd, TIMEOUT_SEC);
                     continue;
                 }
             }
@@ -82,9 +84,8 @@ int Monitoring::server() {
                 }
             }
         }
-        close(sockfd);
     }
-    
+    close(sockfd);
     return 0;
 }
     
