@@ -142,40 +142,8 @@ void Management::startElection(int initiator) {
             if (bytesReceived > 0) {
                 if (isMessage(buffer, ELECTION_RESPONSE)) {
                     amILeader = false;
-                    setSocketTimeout(sockfd, 1000);
-                    clientAddr = configureAdress(comp.ipAddress, comp.port);
-                    bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
-                    if (bytesReceived > 0) {
-                        if (isMessage(buffer, ELECTION_RESULT)) {
-                            cout << "Recebi mensagem de resultado de eleição" << endl;
-                            string message(buffer);
-                            cout << "Mensagem: " << message << endl;
-
-                            size_t hostNamePos = message.find("Host Name:");
-                            size_t macPos = message.find("Host Mac:");
-
-                            if (hostNamePos == string::npos || macPos == string::npos) {
-                                cerr << "Invalid discovery message format" << endl;
-                                continue;
-                            }
-
-                            hostNamePos = hostNamePos + strlen("Host Name:");
-
-                            string hostName = message.substr(hostNamePos, macPos - hostNamePos);
-
-                            macPos = macPos + strlen("Host Mac:");
-
-                            string hostMac = message.substr(macPos);
-
-                            mtx.lock();
-                            serverIp = inet_ntoa(clientAddr.sin_addr);
-                            serverPort = ntohs(clientAddr.sin_port);
-                            serverHostName = hostName;
-                            serverMac = hostMac;
-                            mtx.unlock();
-                        }
-                    }
-                }
+                    break;
+                    }  
             }
         }
     }
