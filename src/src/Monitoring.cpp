@@ -135,7 +135,7 @@ int Monitoring::client() {
             sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, serverLen);
         }
 
-        else if (isElectionMessage(buffer)) {
+        if (isElectionMessage(buffer)) {
             string message(buffer);
             cout << "Recebi mensagem de eleicao:" << buffer << endl;
 
@@ -158,7 +158,7 @@ int Monitoring::client() {
             }
         } 
 
-        else if (isMessage(buffer, ELECTION_RESULT)) {
+        if (isMessage(buffer, ELECTION_RESULT)) {
             cout << "Recebi mensagem de resultado de eleição" << endl;
             string message(buffer);
             cout << "Mensagem: " << message << endl;
