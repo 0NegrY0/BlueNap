@@ -136,9 +136,8 @@ int Monitoring::client() {
         }
 
         else if (isElectionMessage(buffer)) {
-            cout << "Recebi mensagem de eleicao" << endl;
-            cout << "Mensagem: " << buffer << endl;
             string message(buffer);
+            cout << "Recebi mensagem de eleicao:" << buffer << endl;
 
             size_t maxIdPos = message.find(ELECTION_MESSAGE);
 
@@ -152,6 +151,7 @@ int Monitoring::client() {
                 string response = "RESPONSE" + to_string(myId);
                 char* responseMessage = new char[MAX_BUFFER_SIZE];
                 snprintf(responseMessage, MAX_BUFFER_SIZE, "%s", response.c_str());
+                cout << "Meu id é menor, vou chamar uma eleiçao: " << responseMessage << endl;
                 sendto(sockfd, responseMessage, strlen(responseMessage), 0, (struct sockaddr*)&serverAddr, serverLen);
                 sleep(2);
                 management.startElection(myId);
