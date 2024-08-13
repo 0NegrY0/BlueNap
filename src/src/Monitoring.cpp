@@ -120,7 +120,9 @@ int Monitoring::client() {
         
         if (bytesReceived < 0) {
             if (isTimeoutError()) {
+                close(sockfd);
                 management.startElection(myPort - PORT_DISCOVERY);
+                sockfd = createSocket();
             }
             else {
                 std::cerr << "Error in recvfrom(): " << strerror(errno) << endl;
