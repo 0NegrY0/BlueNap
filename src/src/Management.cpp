@@ -133,7 +133,7 @@ void Management::startElection(int initiator) {
             char* electionMessage = new char[MAX_BUFFER_SIZE];
             snprintf(electionMessage, MAX_BUFFER_SIZE, "%s", message.c_str());
 
-            cout << "Enviei mensagem de eleicao!!!: " << buffer << endl; 
+            cout << "Enviei mensagem de eleicao!!!: " << electionMessage << endl; 
             sendto(sockfd, electionMessage, strlen(electionMessage), 0, (struct sockaddr*)&clientAddr, clientLen);
 
             clientAddr = configureAdress(comp.ipAddress, comp.port);
