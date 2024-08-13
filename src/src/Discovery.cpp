@@ -22,7 +22,10 @@ int Discovery::server() {
         memset(buffer, 0, sizeof(buffer));
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
         if (bytesReceived < 0) {
-            cerr << "Error in recvfrom(): " << strerror(errno) << endl;
+            cerr << "Error in recvfrom(): " << " erro discovery " << strerror(errno) << endl;
+            close(sockfd);
+            sockfd = createSocket();
+            setSocketTimeout(sockfd, TIMEOUT_SEC);
             continue;
         }
 

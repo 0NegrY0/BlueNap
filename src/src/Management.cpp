@@ -119,11 +119,12 @@ void Management::startElection(int initiator) {
     cout << "Process " << myId << " started an election." << endl;
     bool amILeader = true;
     char buffer[MAX_BUFFER_SIZE];
+    int sockfd = createSocket();
+    setSocketTimeout(sockfd, 1);
 
     for (auto& comp : computers) {
         if (comp.isAwake && comp.id < myId) {
-            int sockfd = createSocket();
-            setSocketTimeout(sockfd, 1);
+            
 
             struct sockaddr_in clientAddr = configureAdress(comp.ipAddress, comp.port);
             socklen_t clientLen = sizeof(clientAddr);
@@ -132,7 +133,7 @@ void Management::startElection(int initiator) {
             char* electionMessage = new char[MAX_BUFFER_SIZE];
             snprintf(electionMessage, MAX_BUFFER_SIZE, "%s", message.c_str());
 
-            sendto(sockfd, electionMessage, strlen(electionMessage), 0, (struct sockaddr*)&clientAddr, clientLen);
+            cout << "SENDTO OMG: " << sendto(sockfd, electionMessage, strlen(electionMessage), 0, (struct sockaddr*)&clientAddr, clientLen) << endl;
 
             clientAddr = configureAdress(comp.ipAddress, comp.port);
             int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
@@ -144,6 +145,7 @@ void Management::startElection(int initiator) {
             }
         }
     }
+    close(sockfd);
     if (amILeader) {
         announceElectionResult();
     }
@@ -158,6 +160,7 @@ void Management::announceElectionResult() {
 
     string response = ELECTION_RESULT + string("Host Name:") + hostnameStr + "Host Mac:" + getMacAddress();
     snprintf(electionResult, MAX_BUFFER_SIZE, "%s", response.c_str());
+    int sockfd = createSocket();
 
     for (auto& comp : computers) {
         if (comp.id == myPort - PORT_DISCOVERY) {
@@ -172,7 +175,7 @@ void Management::announceElectionResult() {
             //comp.isAwake = false;
         }
         if (comp.isAwake && comp.id != myPort - PORT_DISCOVERY) {
-            int sockfd = createSocket();
+            
             
             struct sockaddr_in clientAddr = configureAdress(comp.ipAddress, comp.port);
             socklen_t clientLen = sizeof(clientAddr);
@@ -180,6 +183,7 @@ void Management::announceElectionResult() {
             sendto(sockfd, electionResult, strlen(electionResult), 0, (struct sockaddr*)&clientAddr, clientLen);
         }
     }
+    close(sockfd);
     isMaster = 1;
 }
 

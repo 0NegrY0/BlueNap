@@ -53,7 +53,7 @@ int Monitoring::server() {
                     management.updateStatus(computers[i].id, false);
                 }
                 else {
-                    cerr << "Error in recvfrom(): " << strerror(errno) << endl;
+                    cerr << "Error in recvfrom(): " << "erro monitoring" << strerror(errno) << endl;
                     close(sockfd);
                     sockfd = createSocket();
                     setSocketTimeout(sockfd, TIMEOUT_SEC);
@@ -66,7 +66,7 @@ int Monitoring::server() {
                 if (strcmp(buffer, MONITORING_MESSAGE_RESPONSE) == 0) {
                     management.updateStatus(computers[i].id, true);
                 }
-                else if (isMessage(buffer, MONITORING_MESSAGE)) {
+                if (isMessage(buffer, MONITORING_MESSAGE)) {
                     //cout << "(Server - Monitoring) É mensagem de monitoramento!" << endl;
                     const char* currentPos = buffer;
     
@@ -79,7 +79,7 @@ int Monitoring::server() {
                         sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
                     }
                 }
-                else if (isMessage(buffer, NEW_LEADER_MESSAGE)) {
+                if (isMessage(buffer, NEW_LEADER_MESSAGE)) {
                     isMaster = 0;
                 }
             }
