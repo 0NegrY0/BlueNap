@@ -168,8 +168,8 @@ void Management::startElection(int initiator) {
                             string hostMac = message.substr(macPos);
 
                             mtx.lock();
-                            serverIp = inet_ntoa(serverAddr.sin_addr);
-                            serverPort = ntohs(serverAddr.sin_port);
+                            serverIp = inet_ntoa(clientAddr.sin_addr);
+                            serverPort = ntohs(clientAddr.sin_port);
                             serverHostName = hostName;
                             serverMac = hostMac;
                             mtx.unlock();
