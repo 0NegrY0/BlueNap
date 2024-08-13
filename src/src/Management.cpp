@@ -133,10 +133,12 @@ void Management::startElection(int initiator) {
             char* electionMessage = new char[MAX_BUFFER_SIZE];
             snprintf(electionMessage, MAX_BUFFER_SIZE, "%s", message.c_str());
 
-            cout << "SENDTO OMG: " << sendto(sockfd, electionMessage, strlen(electionMessage), 0, (struct sockaddr*)&clientAddr, clientLen) << endl;
+            cout << "Enviei mensagem de eleicao!!!: " << buffer << endl; 
+            sendto(sockfd, electionMessage, strlen(electionMessage), 0, (struct sockaddr*)&clientAddr, clientLen);
 
             clientAddr = configureAdress(comp.ipAddress, comp.port);
             int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
+            cout << "recebi mensagem de election!!!!" << buffer << endl;
             if (bytesReceived > 0) {
                 if (isMessage(buffer, ELECTION_RESPONSE)) {
                     amILeader = false;
