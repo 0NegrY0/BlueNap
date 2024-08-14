@@ -59,7 +59,7 @@ int Monitoring::server() {
                     close(sockfd);
                     sockfd = createSocket();
                     setSocketTimeout(sockfd, TIMEOUT_SEC);
-                    listenAtPort(sockfd, myPort + 10);
+                    listenAtPort(sockfd, myPort);
                     continue;
                 }
             }
