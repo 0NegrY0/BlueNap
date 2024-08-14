@@ -95,6 +95,7 @@ int Monitoring::server() {
 int Monitoring::client() {
 
     while (serverIp.empty());
+    cout << "Porta do servidor: " << serverPort << endl;
 
     int sockfd = createSocket(); // recriar o socket se der erro.
     setSocketTimeout(sockfd, 15);
