@@ -98,7 +98,7 @@ int Discovery::client() {
 
     memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(40001);
+    serverAddr.sin_port = htons(PORT_DISCOVERY);
     serverAddr.sin_addr.s_addr = inet_addr(BROADCAST_IP);
 
     char hostname[1024];
@@ -153,7 +153,6 @@ int Discovery::client() {
                 serverMac = hostMac;
                 myPort = port;
                 mtx.unlock();
-
                 break;
             }
         }

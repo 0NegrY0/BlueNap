@@ -120,9 +120,7 @@ int Monitoring::client() {
         
         if (bytesReceived < 0) {
             if (isTimeoutError()) {
-                close(sockfd);
-                management.startElection(myPort - PORT_DISCOVERY);
-                sockfd = createSocket();
+                management.startElection(myPort - PORT_DISCOVERY, sockfd);
             }
             else {
                 std::cerr << "Error in recvfrom(): " << strerror(errno) << endl;
@@ -156,7 +154,7 @@ int Monitoring::client() {
                 cout << "Meu id é menor, vou chamar uma eleiçao: " << responseMessage << endl;
                 sendto(sockfd, responseMessage, strlen(responseMessage), 0, (struct sockaddr*)&serverAddr, serverLen);
                 sleep(2);
-                management.startElection(myId);
+                management.startElection(myId, sockfd);
             }
         } 
 
