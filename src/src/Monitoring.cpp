@@ -23,6 +23,7 @@ int Monitoring::server() {
         for (size_t i = 0; i < computers.size(); i++) {
             
             if (computers[i].id == myPort - PORT_DISCOVERY) {
+                cout << "Sou eu mesmo" << endl;
                 continue;
             }
 
@@ -39,6 +40,7 @@ int Monitoring::server() {
                 send.push_back('\0');
             }
 
+            cout << "Enviando mensagem de monitoramento para: " << clientIp << ":" << clientPort << endl;
             sendto(sockfd, send.data(), send.size(), 0, (struct sockaddr*)&clientAddr, clientLen);
 
             clientAddr = configureAdress(clientIp, clientPort);
@@ -84,7 +86,9 @@ int Monitoring::server() {
                 }
             }
         }
+        sleep(2);
     }
+    
     close(sockfd);
     return 0;
 }
