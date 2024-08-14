@@ -24,12 +24,11 @@ int Monitoring::server() {
         for (size_t i = 0; i < computers.size(); i++) {
             
             if (computers[i].id == myPort - PORT_DISCOVERY) {
-                cout << "Sou eu mesmo" << endl;
                 continue;
             }
 
             string clientIp = computers[i].ipAddress;
-            int clientPort = computers[i].port;
+            int clientPort = computers[i].port + 10;
 
             struct sockaddr_in clientAddr = configureAdress(clientIp, clientPort);
             socklen_t clientLen = sizeof(clientAddr);
