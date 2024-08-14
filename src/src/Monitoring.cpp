@@ -39,8 +39,8 @@ int Monitoring::server() {
                 send.push_back('\0');
             }
 
-            cout << "Enviando mensagem de monitoramento para: " << clientIp << ":" << clientPort << endl;
-            cout << "Resultado:" << sendto(sockfd, send.data(), send.size(), 0, (struct sockaddr*)&clientAddr, clientLen) << endl;
+            cout << "Internal Clock: " << internalClock << endl;
+            sendto(sockfd, send.data(), send.size(), 0, (struct sockaddr*)&clientAddr, clientLen);
 
             clientAddr = configureAdress(clientIp, clientPort);
 
