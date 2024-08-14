@@ -81,7 +81,9 @@ int Monitoring::server() {
                     }
                 }
                 if (isMessage(buffer, NEW_LEADER_MESSAGE)) {
+                    mtx.lock();
                     isMaster = 0;
+                    mtx.unlock();
                 }
             }
         }
