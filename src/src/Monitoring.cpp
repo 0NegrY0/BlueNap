@@ -41,9 +41,7 @@ int Monitoring::server() {
                 memset(buffer, 0, MAX_BUFFER_SIZE);
                 int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
                 if (bytesReceived > 0) {
-                    cout << "Recebi alguma coisa:" << buffer << endl;
                     if (strcmp(buffer, OLD_LEADER_RESPONSE) == 0) {
-                        cout << "entrei" << endl;
                         flag = 0;
                     }
                 }
@@ -70,11 +68,7 @@ int Monitoring::server() {
                 }
                 else {
                     cerr << "Error in recvfrom(): " << "erro monitoring" << strerror(errno) << endl;
-                    close(sockfd);
-                    sockfd = createSocket();
-                    setSocketTimeout(sockfd, TIMEOUT_SEC);
-                    listenAtPort(sockfd, myPort);
-                    continue;
+                    break;
                 }
             }
             else {
@@ -82,18 +76,7 @@ int Monitoring::server() {
                 if (strcmp(buffer, MONITORING_MESSAGE_RESPONSE) == 0) {
                     management.updateStatus(computers[i].id, true);
                 }
-                if (isMessage(buffer, MONITORING_MESSAGE)) {
-                    const char* currentPos = buffer;
-    
-                    string message(currentPos);
-                    size_t pos = message.find(MONITORING_MESSAGE);
-
-                    int clockReceived = stoi(message.substr(pos + strlen(MONITORING_MESSAGE)));
-                    if (clockReceived > internalClock) {
-                        strcpy(buffer, NEW_LEADER_MESSAGE);
-                        sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
-                    }
-                }
+                
                 if (isMessage(buffer, NEW_LEADER_MESSAGE)) {
                     strcpy(buffer, OLD_LEADER_RESPONSE);
                     sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);

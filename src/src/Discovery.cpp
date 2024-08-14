@@ -24,11 +24,7 @@ int Discovery::server() {
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
         if (bytesReceived < 0) {
             cerr << "Error in recvfrom(): " << " erro discovery " << strerror(errno) << endl;
-            close(sockfd);
-            sockfd = createSocket();
-            setSocketTimeout(sockfd, TIMEOUT_SEC);
-            listenAtPort(sockfd, myPort);
-            continue;
+            break;
         }
 
         if (isExitMessage(buffer)) {
