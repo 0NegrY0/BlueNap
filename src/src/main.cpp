@@ -51,7 +51,7 @@ int main(int agrc, char* agrv[]) {
                 Computer comp = management->createComputer(discovery->getIPAddress(), discovery->getMacAddress());
                 comp.hostName = hostNameStr;
                 comp.isServer = true;
-                myPort = comp.port +10;
+                myPort = comp.port;
                 management->addComputer(comp);
             }
             server(discovery, monitoring, interface);

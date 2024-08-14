@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 using namespace std;
+#define PORTA_DISCOVERY 44000
 
 int Discovery::server() {
     
@@ -15,7 +16,7 @@ int Discovery::server() {
     char buffer[MAX_BUFFER_SIZE];
     int sockfd = createSocket();
 
-    listenAtPort(sockfd, PORT_DISCOVERY);
+    listenAtPort(sockfd, PORTA_DISCOVERY);
     Management management;
 
     while (isMaster) {
@@ -99,7 +100,7 @@ int Discovery::client() {
 
     memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(PORT_DISCOVERY);
+    serverAddr.sin_port = htons(PORTA_DISCOVERY);
     serverAddr.sin_addr.s_addr = inet_addr(BROADCAST_IP);
 
     char hostname[1024];
