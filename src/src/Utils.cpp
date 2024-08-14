@@ -23,6 +23,7 @@ bool shouldExit = false;
 int internalClock = -1;
 int nextID = 0;
 int isMaster = 0;
+string oldServerIP = "";
 
 string Utils::getIPAddress() {
     struct ifaddrs *ifaddr, *ifa;

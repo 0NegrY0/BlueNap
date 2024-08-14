@@ -21,7 +21,7 @@ Computer Management::createComputer(string clientIp, string clientMac) {
     nextID++;
     comp.isServer = false;
     comp.isAwake = true;
-    comp.port = PORT_DISCOVERY + comp.id;
+    comp.port = DEFAULT_PORT + comp.id;
 
     return comp;
 }
@@ -115,7 +115,7 @@ void Management::wakeOnLan(const string& macAddress, const string& ipAddress) {
 }
 
 void Management::startElection(int initiator, int &sockfd) {
-    int myId = myPort - PORT_DISCOVERY;
+    int myId = myPort - DEFAULT_PORT;
     cout << "Process " << myId << " started an election." << endl;
     bool amILeader = true;
     char buffer[MAX_BUFFER_SIZE];
@@ -137,21 +137,20 @@ void Management::startElection(int initiator, int &sockfd) {
             char* electionMessage = new char[MAX_BUFFER_SIZE];
             snprintf(electionMessage, MAX_BUFFER_SIZE, "%s", message.c_str());
 
-            cout << "Enviei mensagem de eleicao!!!: " << electionMessage << endl; 
             sendto(sockfd, electionMessage, strlen(electionMessage), 0, (struct sockaddr*)&clientAddr, clientLen);
 
             clientAddr = configureAdress(comp.ipAddress, comp.port);
             int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
             if (bytesReceived > 0) {
                 if (isMessage(buffer, ELECTION_RESPONSE)) {
-                    cout << "recebi mensagem de election!!!!" << buffer << endl;
                     amILeader = false;
                     break;
-                    }  
+                }  
             }
         }
     }
     if (amILeader) {
+        oldServerIP = serverIp;
         announceElectionResult();
     }
 }
@@ -168,7 +167,7 @@ void Management::announceElectionResult() {
     int sockfd = createSocket();
 
     for (auto& comp : computers) {
-        if (comp.id == myPort - PORT_DISCOVERY) {
+        if (comp.id == myPort - DEFAULT_PORT) {
             mtx.lock();
             comp.isServer = true;
             mtx.unlock();
@@ -179,7 +178,7 @@ void Management::announceElectionResult() {
             mtx.unlock();
             //comp.isAwake = false;
         }
-        if (comp.isAwake && comp.id != myPort - PORT_DISCOVERY) {
+        if (comp.isAwake && comp.id != myPort - DEFAULT_PORT) {
             
             
             struct sockaddr_in clientAddr = configureAdress(comp.ipAddress, comp.port);

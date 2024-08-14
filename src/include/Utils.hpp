@@ -8,7 +8,7 @@
 
 #define MAX_BUFFER_SIZE 1024
 #define TIMEOUT_SEC 5
-#define PORT_DISCOVERY 40000
+#define DEFAULT_PORT 40000
 #define TEST_PORT 40001
 #define EXIT_MESSAGE "KILLME"
 #define ELECTION_MESSAGE "ELECTION: "
@@ -42,6 +42,7 @@ extern bool shouldExit;
 extern int internalClock;
 extern int nextID;
 extern int isMaster;
+extern string oldServerIP;
 
 class Utils {
     public:

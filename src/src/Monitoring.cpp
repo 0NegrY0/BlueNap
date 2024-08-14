@@ -23,7 +23,7 @@ int Monitoring::server() {
         
         for (size_t i = 0; i < computers.size(); i++) {
             
-            if (computers[i].id == myPort - PORT_DISCOVERY) {
+            if (computers[i].id == myPort - DEFAULT_PORT) {
                 continue;
             }
 
@@ -33,14 +33,26 @@ int Monitoring::server() {
             struct sockaddr_in clientAddr = configureAdress(clientIp, clientPort);
             socklen_t clientLen = sizeof(clientAddr);
 
-            vector<char> send = management.setMonitoringMessage();
+            vector<char> send;
+            if (computers[i].ipAddress == oldServerIP) {
+                char* new_leader_message = "Exemplo de mensagem";
+                vector<char> send;
+
+                size_t length = strlen(NEW_LEADER_MESSAGE);
+
+                send.resize(length);
+
+                copy(NEW_LEADER_MESSAGE, NEW_LEADER_MESSAGE + length, send.begin());
+            }
+            else {
+                send = management.setMonitoringMessage();
+            }
 
             //Ensure the vector is null-terminated if necessary
             if (send.empty() || send.back() != '\0') {
                 send.push_back('\0');
             }
 
-            cout << "Internal Clock: " << internalClock << endl;
             sendto(sockfd, send.data(), send.size(), 0, (struct sockaddr*)&clientAddr, clientLen);
 
             clientAddr = configureAdress(clientIp, clientPort);
@@ -49,9 +61,7 @@ int Monitoring::server() {
 
             int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
             if (bytesReceived < 0) {
-                //cout << "Recebi 0 bytes" << endl;
                 if (isTimeoutError()) {
-                    //cout << "Erro de Timeout" << endl;
                     management.updateStatus(computers[i].id, false);
                 }
                 else {
@@ -64,20 +74,18 @@ int Monitoring::server() {
                 }
             }
             else {
-                //cout << "(Server - Monitoring) Recebi a mensagem: " << buffer << endl;
                 buffer[bytesReceived] = '\0'; // Adiciona um terminador nulo para evitar problemas com a comparação
                 if (strcmp(buffer, MONITORING_MESSAGE_RESPONSE) == 0) {
                     management.updateStatus(computers[i].id, true);
                 }
                 if (isMessage(buffer, MONITORING_MESSAGE)) {
-                    cout << "(Server - Monitoring) É mensagem de monitoramento!" << endl;
                     const char* currentPos = buffer;
     
                     string message(currentPos);
                     size_t pos = message.find(MONITORING_MESSAGE);
 
                     int clockReceived = stoi(message.substr(pos + strlen(MONITORING_MESSAGE)));
-                    if (clockReceived <= internalClock) {
+                    if (clockReceived > internalClock) {
                         strcpy(buffer, NEW_LEADER_MESSAGE);
                         sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
                     }
@@ -85,6 +93,7 @@ int Monitoring::server() {
                 if (isMessage(buffer, NEW_LEADER_MESSAGE)) {
                     mtx.lock();
                     isMaster = 0;
+                    oldServerIP = "";
                     mtx.unlock();
                 }
             }
@@ -97,7 +106,6 @@ int Monitoring::server() {
 }
     
 int Monitoring::client() {
-
     while (serverIp.empty());
 
     int sockfd = createSocket(); // recriar o socket se der erro.
@@ -118,7 +126,7 @@ int Monitoring::client() {
     }
 
     char buffer[MAX_BUFFER_SIZE];
-    struct sockaddr_in serverAddr = configureAdress(serverIp, serverPort);
+    struct sockaddr_in serverAddr; // = configureAdress(serverIp, serverPort);
     socklen_t serverLen = sizeof(serverAddr);
     Management management;
     
@@ -127,7 +135,7 @@ int Monitoring::client() {
         
         if (bytesReceived < 0) {
             if (isTimeoutError()) {
-                management.startElection(myPort - PORT_DISCOVERY, sockfd);
+                management.startElection(myPort - DEFAULT_PORT, sockfd);
             }
             else {
                 std::cerr << "Error in recvfrom(): " << strerror(errno) << endl;
@@ -153,7 +161,7 @@ int Monitoring::client() {
                 continue;
             }
             int id = stoi(message.substr(maxIdPos + strlen(ELECTION_MESSAGE)));
-            int myId = myPort - PORT_DISCOVERY;
+            int myId = myPort - DEFAULT_PORT;
             if (myId < id) {
                 string response = "RESPONSE" + to_string(myId);
                 char* responseMessage = new char[MAX_BUFFER_SIZE];
