@@ -18,6 +18,7 @@ int Monitoring::server() {
     Management management;
     int sockfd = createSocket();
     setSocketTimeout(sockfd, TIMEOUT_SEC);
+    listenAtPort(sockfd, myPort + 10);
     while (isMaster) {
         
         for (size_t i = 0; i < computers.size(); i++) {
