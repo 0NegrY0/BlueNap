@@ -142,9 +142,9 @@ void Management::startElection(int initiator, int &sockfd) {
 
             clientAddr = configureAdress(comp.ipAddress, comp.port);
             int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
-            cout << "recebi mensagem de election!!!!" << buffer << endl;
             if (bytesReceived > 0) {
                 if (isMessage(buffer, ELECTION_RESPONSE)) {
+                    cout << "recebi mensagem de election!!!!" << buffer << endl;
                     amILeader = false;
                     break;
                     }  
