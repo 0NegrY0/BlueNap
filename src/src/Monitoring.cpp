@@ -18,7 +18,7 @@ int Monitoring::server() {
     Management management;
     int sockfd = createSocket();
     setSocketTimeout(sockfd, TIMEOUT_SEC);
-    listenAtPort(sockfd, myPort + 10);
+    listenAtPort(sockfd, myPort);
     while (isMaster) {
         
         for (size_t i = 0; i < computers.size(); i++) {
@@ -28,7 +28,7 @@ int Monitoring::server() {
             }
 
             string clientIp = computers[i].ipAddress;
-            int clientPort = computers[i].port + 10;
+            int clientPort = computers[i].port;
 
             struct sockaddr_in clientAddr = configureAdress(clientIp, clientPort);
             socklen_t clientLen = sizeof(clientAddr);
