@@ -40,7 +40,9 @@ int Monitoring::server() {
                 clientAddr = configureAdress(clientIp, clientPort);
                 int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
                 if (bytesReceived > 0) {
+                    cout << "Recebi alguma coisa"<< endl;
                     if (strcmp(buffer, OLD_LEADER_RESPONSE) == 0) {
+                        cout << "entrei" << endl;
                         flag = 0;
                     }
                 }
@@ -109,6 +111,7 @@ int Monitoring::server() {
 }
     
 int Monitoring::client() {
+    cout << "Monitor cliente" << endl;
     while (serverIp.empty());
 
     int sockfd = createSocket(); // recriar o socket se der erro.
