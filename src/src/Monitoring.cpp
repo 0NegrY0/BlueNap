@@ -70,10 +70,10 @@ int Monitoring::server() {
                 }
                 else {
                     cerr << "Error in recvfrom(): " << "erro monitoring" << strerror(errno) << endl;
-                    mtx.lock();
-                    isMaster = 0;
-                    oldServerIP = "";
-                    mtx.unlock();
+                    close(sockfd);
+                    sockfd = createSocket();
+                    setSocketTimeout(sockfd, TIMEOUT_SEC);
+                    listenAtPort(sockfd, myPort);
                     break;
                 }
             }
