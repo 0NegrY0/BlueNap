@@ -96,6 +96,7 @@ int Monitoring::server() {
                 if (isMessage(buffer, NEW_LEADER_MESSAGE)) {
                     strcpy(buffer, OLD_LEADER_RESPONSE);
                     sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
+                    sleep(2);
                     mtx.lock();
                     isMaster = 0;
                     oldServerIP = "";
