@@ -18,6 +18,7 @@ int Monitoring::server() {
     Management management;
     int sockfd = createSocket();
     setSocketTimeout(sockfd, TIMEOUT_SEC);
+    listenAtPort(sockfd, myPort + 10);
     while (isMaster) {
         
         for (size_t i = 0; i < computers.size(); i++) {
@@ -58,6 +59,7 @@ int Monitoring::server() {
                     close(sockfd);
                     sockfd = createSocket();
                     setSocketTimeout(sockfd, TIMEOUT_SEC);
+                    listenAtPort(sockfd, myPort + 10);
                     continue;
                 }
             }
@@ -68,7 +70,7 @@ int Monitoring::server() {
                     management.updateStatus(computers[i].id, true);
                 }
                 if (isMessage(buffer, MONITORING_MESSAGE)) {
-                    //cout << "(Server - Monitoring) É mensagem de monitoramento!" << endl;
+                    cout << "(Server - Monitoring) É mensagem de monitoramento!" << endl;
                     const char* currentPos = buffer;
     
                     string message(currentPos);

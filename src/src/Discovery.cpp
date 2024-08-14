@@ -26,6 +26,7 @@ int Discovery::server() {
             close(sockfd);
             sockfd = createSocket();
             setSocketTimeout(sockfd, TIMEOUT_SEC);
+            listenAtPort(sockfd, myPort);
             continue;
         }
 
