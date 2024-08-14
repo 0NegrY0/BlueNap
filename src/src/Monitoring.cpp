@@ -18,7 +18,7 @@ int Monitoring::server() {
     Management management;
     int sockfd = createSocket();
     setSocketTimeout(sockfd, TIMEOUT_SEC);
-    listenAtPort(sockfd, myPort + 10);
+    listenAtPort(sockfd, myPort);
     while (isMaster) {
         
         for (size_t i = 0; i < computers.size(); i++) {
@@ -99,7 +99,6 @@ int Monitoring::server() {
 int Monitoring::client() {
 
     while (serverIp.empty());
-    cout << "Porta do servidor: " << serverPort << endl;
 
     int sockfd = createSocket(); // recriar o socket se der erro.
     setSocketTimeout(sockfd, 15);
