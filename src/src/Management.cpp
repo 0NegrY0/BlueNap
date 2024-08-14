@@ -151,7 +151,6 @@ void Management::startElection(int initiator, int &sockfd) {
             }
         }
     }
-    close(sockfd);
     if (amILeader) {
         announceElectionResult();
     }
