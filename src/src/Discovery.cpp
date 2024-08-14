@@ -15,7 +15,7 @@ int Discovery::server() {
     char buffer[MAX_BUFFER_SIZE];
     int sockfd = createSocket();
 
-    listenAtPort(sockfd, myPort);
+    listenAtPort(sockfd, 40010);
     Management management;
 
     while (isMaster) {
