@@ -41,7 +41,9 @@ int Monitoring::server() {
                 memset(buffer, 0, MAX_BUFFER_SIZE);
                 int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
                 if (bytesReceived > 0) {
+                    cout << "Recebi alguma coisa:" << buffer << endl;
                     if (strcmp(buffer, OLD_LEADER_RESPONSE) == 0) {
+                        cout << "ANTIGO LIDER" << endl;
                         flag = 0;
                     }
                 }
@@ -68,6 +70,10 @@ int Monitoring::server() {
                 }
                 else {
                     cerr << "Error in recvfrom(): " << "erro monitoring" << strerror(errno) << endl;
+                    mtx.lock();
+                    isMaster = 0;
+                    oldServerIP = "";
+                    mtx.unlock();
                     break;
                 }
             }
