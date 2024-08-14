@@ -19,6 +19,7 @@ int Monitoring::server() {
     int sockfd = createSocket();
     setSocketTimeout(sockfd, TIMEOUT_SEC);
     listenAtPort(sockfd, myPort);
+    int flag = 1;
     while (isMaster) {
         
         for (size_t i = 0; i < computers.size(); i++) {
@@ -33,27 +34,27 @@ int Monitoring::server() {
             struct sockaddr_in clientAddr = configureAdress(clientIp, clientPort);
             socklen_t clientLen = sizeof(clientAddr);
 
-            vector<char> send;
-            if (computers[i].ipAddress == oldServerIP) {
-                char* new_leader_message = "Exemplo de mensagem";
-                vector<char> send;
-
-                size_t length = strlen(NEW_LEADER_MESSAGE);
-
-                send.resize(length);
-
-                copy(NEW_LEADER_MESSAGE, NEW_LEADER_MESSAGE + length, send.begin());
+            if (computers[i].ipAddress == oldServerIP && flag) {
+                strcpy(buffer, NEW_LEADER_MESSAGE);
+                sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
+                clientAddr = configureAdress(clientIp, clientPort);
+                int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
+                if (bytesReceived > 0) {
+                    if (strcmp(buffer, OLD_LEADER_RESPONSE) == 0) {
+                        flag = 0;
+                    }
+                }
             }
             else {
+                vector<char> send;
                 send = management.setMonitoringMessage();
-            }
+                //Ensure the vector is null-terminated if necessary
+                if (send.empty() || send.back() != '\0') {
+                    send.push_back('\0');
+                }
 
-            //Ensure the vector is null-terminated if necessary
-            if (send.empty() || send.back() != '\0') {
-                send.push_back('\0');
+                sendto(sockfd, send.data(), send.size(), 0, (struct sockaddr*)&clientAddr, clientLen);
             }
-
-            sendto(sockfd, send.data(), send.size(), 0, (struct sockaddr*)&clientAddr, clientLen);
 
             clientAddr = configureAdress(clientIp, clientPort);
 

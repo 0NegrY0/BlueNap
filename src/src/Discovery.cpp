@@ -150,7 +150,7 @@ int Discovery::client() {
 
                 mtx.lock();
                 serverIp = inet_ntoa(responseAddr.sin_addr);
-                serverPort = ntohs(responseAddr.sin_port);
+                //serverPort = ntohs(responseAddr.sin_port);
                 serverHostName = hostName;
                 serverMac = hostMac;
                 myPort = port;
