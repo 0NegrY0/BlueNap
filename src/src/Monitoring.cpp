@@ -19,7 +19,6 @@ int Monitoring::server() {
     int sockfd = createSocket();
     setSocketTimeout(sockfd, TIMEOUT_SEC);
     listenAtPort(sockfd, myPort);
-    int flag = 1;
     while (isMaster) {
         
         for (size_t i = 0; i < computers.size(); i++) {
@@ -34,7 +33,7 @@ int Monitoring::server() {
             struct sockaddr_in clientAddr = configureAdress(clientIp, clientPort);
             socklen_t clientLen = sizeof(clientAddr);
 
-            if (computers[i].ipAddress == oldServerIP && flag) {
+            if (computers[i].ipAddress == oldServerIP) {
                 strcpy(buffer, NEW_LEADER_MESSAGE);
                 sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
                 clientAddr = configureAdress(clientIp, clientPort);
@@ -43,8 +42,9 @@ int Monitoring::server() {
                 if (bytesReceived > 0) {
                     cout << "Recebi alguma coisa:" << buffer << endl;
                     if (strcmp(buffer, OLD_LEADER_RESPONSE) == 0) {
-                        cout << "ANTIGO LIDER" << endl;
-                        flag = 0;
+                        strcpy(buffer, OK);
+                        sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
+                        oldServerIP = "";
                     }
                 }
             }
@@ -70,10 +70,10 @@ int Monitoring::server() {
                 }
                 else {
                     cerr << "Error in recvfrom(): " << "erro monitoring" << strerror(errno) << endl;
-                    close(sockfd);
-                    sockfd = createSocket();
-                    setSocketTimeout(sockfd, TIMEOUT_SEC);
-                    listenAtPort(sockfd, myPort);
+                    do {
+                        bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr *)&clientAddr, &clientLen);
+                    } while (bytesReceived < 0 && errno == EINTR); 
+
                     break;
                 }
             }
@@ -83,9 +83,25 @@ int Monitoring::server() {
                     management.updateStatus(computers[i].id, true);
                 }
                 
+                // SERVER NOVO: SOU O NOVO LIDER 
+                // SERVER ANTIGO: OK SORRY
+                // SERVER NOVO: OK
                 if (isMessage(buffer, NEW_LEADER_MESSAGE)) {
-                    strcpy(buffer, OLD_LEADER_RESPONSE);
-                    sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
+                    bool exit = false;
+                    do {
+                        setSocketTimeout(sockfd, 0.5);
+                        strcpy(buffer, OLD_LEADER_RESPONSE);
+                        sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
+                        clientAddr = configureAdress(clientIp, clientPort);
+                        memset(buffer, 0, MAX_BUFFER_SIZE);
+                        int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
+                        if (bytesReceived > 0) {
+                            if (strcmp(buffer, OK) == 0) {
+                                exit = true;
+                            }
+                        }
+                    }while(!exit);
+                    setSocketTimeout(sockfd, TIMEOUT_SEC);
                     sleep(2);
                     mtx.lock();
                     isMaster = 0;
@@ -94,7 +110,7 @@ int Monitoring::server() {
                 }
             }
         }
-        sleep(2);
+        sleep(1);
     }
     
     close(sockfd);

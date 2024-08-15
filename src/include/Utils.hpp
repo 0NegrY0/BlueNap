@@ -17,6 +17,7 @@
 #define MONITORING_MESSAGE "Are you Awake?"
 #define NEW_LEADER_MESSAGE "NEW LEADER"
 #define OLD_LEADER_RESPONSE "OK SORRY"
+#define OK "OK"
 
 using namespace std;
 
