@@ -44,7 +44,10 @@ int Monitoring::server() {
                     if (strcmp(buffer, OLD_LEADER_RESPONSE) == 0) {
                         strcpy(buffer, OK);
                         sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
+                        mtx.lock();
                         oldServerIP = "";
+                        internalClock += 1;
+                        mtx.unlock();
                     }
                 }
             }
@@ -71,9 +74,10 @@ int Monitoring::server() {
                 else {
                     cerr << "Error in recvfrom(): " << "erro monitoring" << strerror(errno) << endl;
                     do {
+                        cout << "Enviei" << endl;
                         bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr *)&clientAddr, &clientLen);
                     } while (bytesReceived < 0 && errno == EINTR); 
-
+                    cout << "Vou Fechar" << endl;
                     break;
                 }
             }
