@@ -6,8 +6,25 @@
 #include <cerrno>
 #include <unistd.h>
 #include <cstdlib>
+#include <future>
+#include <chrono>
 
 using namespace std;
+
+bool getInputWithTimeout(string& input, int timeoutSeconds) {
+    auto future = async(launch::async, []() {
+        string temp;
+        getline(cin, temp);
+        return temp;
+    });
+
+    if (future.wait_for(chrono::seconds(timeoutSeconds)) == future_status::timeout) {
+        return false;
+    } else {
+        input = future.get();
+        return true;
+    }
+}
 
 int Interface::server() {
     Management management;
@@ -71,7 +88,7 @@ int Interface::server() {
         cout << "Enter 1 to wake a client, Enter anything to update" << endl;
 
         string input; 
-        cin >> input;
+        getInputWithTimeout(input, 2);
         if (input == "1"){
             cout << "Enter the ID of the client you want to awake: ";
             cin >> input;
@@ -149,14 +166,14 @@ int Interface::client() {
         cout << "Enter 'EXIT' to leave, Enter anything to update" << endl;
 
         string input; 
-        getline(cin, input);
-            if (input == "EXIT"){
+        getInputWithTimeout(input, 2);
+        if (input == "EXIT"){
             management.askToCloseConnection();
             sleep(1);
             mtx.lock();
             shouldExit = true;
             mtx.unlock();
-            }      
+        }      
         
         system("clear");
     }
