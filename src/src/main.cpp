@@ -113,8 +113,14 @@ void server(shared_ptr<Discovery> discovery, shared_ptr<Monitoring> monitoring, 
     threads.push_back(thread(&Monitoring::server, monitoring));
     threads.push_back(thread(&Interface::server, interface));
     cout << "Vou dar join na thread monitoring" << endl;
+    if (threads[0].joinable()) {
+        threads[0].join();
+    }
     if (threads[1].joinable()) {
         threads[1].join();
+    }
+    if (threads[2].joinable()) {
+        threads[2].join();
     }
     //joinThreads(threads);
     cout << "Acabou as threads" << endl;

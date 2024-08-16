@@ -75,6 +75,7 @@ int Discovery::server() {
         }
     }
     close(sockfd);
+    cout << "Fechei server discovery" << endl;
     return 0;
 }
 
@@ -154,7 +155,6 @@ int Discovery::client() {
             }
         }
     }
-    cout << "Fechei server discovery" << endl;
     close(sockfd);
     return 0;
 }

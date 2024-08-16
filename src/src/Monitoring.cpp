@@ -136,7 +136,7 @@ int Monitoring::client() {
     while (serverIp.empty());
 
     int sockfd = createSocket(); // recriar o socket se der erro.
-    setSocketTimeout(sockfd, 5);
+    setSocketTimeout(sockfd, 8);
 
     struct sockaddr_in localAddr;
     socklen_t localLen = sizeof(localAddr);
