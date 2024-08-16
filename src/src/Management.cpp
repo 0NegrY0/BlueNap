@@ -119,7 +119,7 @@ void Management::startElection(int initiator, int& sockfd) {
     cout << "Process " << myId << " started an election." << endl;
     bool amILeader = true;
     char buffer[MAX_BUFFER_SIZE];
-    setSocketTimeout(sockfd, 2);
+    setSocketTimeout(sockfd, 1);
 
     for (auto& comp : computers) {
         if (comp.isAwake && comp.id < myId) {
@@ -139,10 +139,16 @@ void Management::startElection(int initiator, int& sockfd) {
             if (bytesReceived > 0) {
                 cout << "Recebi algo:" << buffer << endl;
                 if (isMessage(buffer, MONITORING_MESSAGE)) {
+                    cout << "Deu ruim pra mim, nao sou o lider" << endl;
                     amILeader = false;
                     break;
                 }
                 if (isMessage(buffer, ELECTION_RESPONSE)) {
+                    cout << "Deu ruim pra mim, nao sou o lider" << endl;
+                    amILeader = false;
+                    break;
+                }  
+                if (isMessage(buffer, ELECTION_RESULT)) {
                     cout << "Deu ruim pra mim, nao sou o lider" << endl;
                     amILeader = false;
                     break;
