@@ -159,16 +159,19 @@ void Management::startElection(int initiator, int& sockfd) {
                         string response = "RESPONSE" + to_string(myId);
                         char* responseMessage = new char[MAX_BUFFER_SIZE];
                         snprintf(responseMessage, MAX_BUFFER_SIZE, "%s", response.c_str());
-                        sendto(sockfd, responseMessage, strlen(responseMessage), 0, (struct sockaddr*)&serverAddr, serverLen);
+                        sendto(sockfd, responseMessage, strlen(responseMessage), 0, (struct sockaddr*)&clientAddr, clientLen);
                         sleep(2);
                         cout << "Meu id é menor, vou chamar uma eleiçao: " << responseMessage << endl;
-                        management.startElection(myId, sockfd);
+                        startElection(myId, sockfd);
                     }
                     else {
                         amILeader = false;
                         break;
                     }
                 } 
+                else{
+                    cout << "So nao recebi nada mesmo" << endl;
+                }
             }
         }
     }
