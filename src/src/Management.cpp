@@ -165,14 +165,13 @@ void Management::announceElectionResult() {
         if (comp.id == myPort - DEFAULT_PORT) {
             mtx.lock();
             comp.isServer = true;
-            comp.isAwake = true;
             mtx.unlock();
         }
         else if (comp.isServer) {
             mtx.lock();
             comp.isServer = false;
+            comp.isAwake = false;
             mtx.unlock();
-            //comp.isAwake = false;
         }
         if (comp.isAwake && comp.id != myPort - DEFAULT_PORT) {
             
