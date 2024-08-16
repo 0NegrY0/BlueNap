@@ -88,23 +88,35 @@ int Interface::server() {
         cout << "Enter 1 to wake a client, Enter anything to update" << endl;
 
         string input; 
-        getInputWithTimeout(input, 2);
-        if (input == "1"){
-            cout << "Enter the ID of the client you want to awake: ";
-            cin >> input;
 
-            int id = stoi(input);
-            cout << "Vou acordar o computador de id: " << id << endl;
-            for (auto& c : computers){
-                if (c.id == id){
-                    management.wakeOnLan(c.macAddress, c.ipAddress);
-                    sleep(1);
-                }
-            }         
+        fd_set fds;
+        FD_ZERO(&fds);
+        FD_SET(STDIN_FILENO, &fds);
+
+        struct timeval tv;
+        tv.tv_sec = 2;
+        tv.tv_usec = 0;
+
+        int ret = select(STDIN_FILENO + 1, &fds, nullptr, nullptr, &tv);
+
+        if (ret > 0){
+            string input; 
+            getline(cin, input);
+            if (input == "1"){
+                cout << "Enter the ID of the client you want to awake: ";
+                cin >> input;
+
+                int id = stoi(input);
+                for (auto& c : computers){
+                    if (c.id == id) {
+                        management.wakeOnLan(c.macAddress, c.ipAddress);
+                        sleep(1);
+                    }
+                }         
+            }
         }
         
         system("clear");
-
     }
     return 0;
 }
@@ -166,14 +178,28 @@ int Interface::client() {
         cout << "Enter 'EXIT' to leave, Enter anything to update" << endl;
 
         string input; 
-        getInputWithTimeout(input, 2);
-        if (input == "EXIT"){
-            management.askToCloseConnection();
-            sleep(1);
-            mtx.lock();
-            shouldExit = true;
-            mtx.unlock();
-        }      
+        
+        fd_set fds;
+        FD_ZERO(&fds);
+        FD_SET(STDIN_FILENO, &fds);
+
+        struct timeval tv;
+        tv.tv_sec = 5;
+        tv.tv_usec = 0;
+
+        int ret = select(STDIN_FILENO + 1, &fds, nullptr, nullptr, &tv);
+
+        if (ret > 0){
+            string input; 
+            getline(cin, input);
+            if (input == "EXIT"){
+                management.askToCloseConnection();
+                sleep(1);
+                mtx.lock();
+                shouldExit = true;
+                mtx.unlock();
+            }      
+        }
         
         system("clear");
     }
