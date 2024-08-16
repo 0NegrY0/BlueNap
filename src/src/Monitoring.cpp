@@ -33,7 +33,6 @@ int Monitoring::server() {
             cout << "ENviando mensagem ao cliente" << clientIp << ":" << clientPort << endl;
 
             if (computers[i].ipAddress == oldServerIP) {
-                setSocketTimeout(sockfd, 1);
                 strcpy(buffer, NEW_LEADER_MESSAGE);
                 sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
                 clientAddr = configureAdress(clientIp, clientPort);
@@ -49,7 +48,6 @@ int Monitoring::server() {
                         mtx.unlock();
                     }
                 }
-                setSocketTimeout(sockfd, TIMEOUT_SEC);
             }
             else {
                 vector<char> send;
