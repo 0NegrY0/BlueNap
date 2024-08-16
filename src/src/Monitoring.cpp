@@ -58,61 +58,61 @@ int Monitoring::server() {
                 }
 
                 sendto(sockfd, send.data(), send.size(), 0, (struct sockaddr*)&clientAddr, clientLen);
-            }
+            
+                clientAddr = configureAdress(clientIp, clientPort);
 
-            clientAddr = configureAdress(clientIp, clientPort);
+                memset(buffer, 0, MAX_BUFFER_SIZE);
 
-            memset(buffer, 0, MAX_BUFFER_SIZE);
-
-            int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
-            if (bytesReceived < 0) {
-                if (isTimeoutError()) {
-                    management.updateStatus(computers[i].id, false);
+                int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
+                if (bytesReceived < 0) {
+                    if (isTimeoutError()) {
+                        management.updateStatus(computers[i].id, false);
+                    }
+                    else {
+                        cerr << "Error in recvfrom(): " << "erro monitoring" << strerror(errno) << endl;
+                        do {
+                            bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr *)&clientAddr, &clientLen);
+                        } while (bytesReceived < 0 && errno == EINTR); 
+                        continue;
+                    }
                 }
                 else {
-                    cerr << "Error in recvfrom(): " << "erro monitoring" << strerror(errno) << endl;
-                    do {
-                        bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr *)&clientAddr, &clientLen);
-                    } while (bytesReceived < 0 && errno == EINTR); 
-                    continue;
-                }
-            }
-            else {
-                buffer[bytesReceived] = '\0'; // Adiciona um terminador nulo para evitar problemas com a comparação
-                if (strcmp(buffer, MONITORING_MESSAGE_RESPONSE) == 0) {
-                    management.updateStatus(computers[i].id, true);
-                }
-                
-                // SERVER NOVO: SOU O NOVO LIDER 
-                // SERVER ANTIGO: OK SORRY
-                // SERVER NOVO: OK
-                if (isMessage(buffer, NEW_LEADER_MESSAGE)) {
-                    bool exit = false;
-                    do {
-                        setSocketTimeout(sockfd, 0.5);
-                        strcpy(buffer, OLD_LEADER_RESPONSE);
-                        sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
-                        clientAddr = configureAdress(clientIp, clientPort);
-                        memset(buffer, 0, MAX_BUFFER_SIZE);
-                        int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
-                        if (bytesReceived > 0) {
-                            if (strcmp(buffer, OK) == 0) {
-                                exit = true;
+                    buffer[bytesReceived] = '\0'; // Adiciona um terminador nulo para evitar problemas com a comparação
+                    if (strcmp(buffer, MONITORING_MESSAGE_RESPONSE) == 0) {
+                        management.updateStatus(computers[i].id, true);
+                    }
+                    
+                    // SERVER NOVO: SOU O NOVO LIDER 
+                    // SERVER ANTIGO: OK SORRY
+                    // SERVER NOVO: OK
+                    if (isMessage(buffer, NEW_LEADER_MESSAGE)) {
+                        bool exit = false;
+                        do {
+                            setSocketTimeout(sockfd, 0.5);
+                            strcpy(buffer, OLD_LEADER_RESPONSE);
+                            sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
+                            clientAddr = configureAdress(clientIp, clientPort);
+                            memset(buffer, 0, MAX_BUFFER_SIZE);
+                            int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
+                            if (bytesReceived > 0) {
+                                if (strcmp(buffer, OK) == 0) {
+                                    exit = true;
+                                }
                             }
-                        }
-                    }while(!exit);
-                    setSocketTimeout(sockfd, TIMEOUT_SEC);
-                    sleep(2);
-                    mtx.lock();
-                    isMaster = false;
-                    oldServerIP = "";
-                    mtx.unlock();
-                }
+                        }while(!exit);
+                        setSocketTimeout(sockfd, TIMEOUT_SEC);
+                        sleep(2);
+                        mtx.lock();
+                        isMaster = false;
+                        oldServerIP = "";
+                        mtx.unlock();
+                    }
 
-                if (isMessage(buffer, ELECTION_MESSAGE)) {
-                    cout << "O idiota acha que eu to dormindo" << endl;
-                    strcpy(buffer, ELECTION_RESPONSE);
-                    sendto(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, clientLen);
+                    if (isMessage(buffer, ELECTION_MESSAGE)) {
+                        cout << "O idiota acha que eu to dormindo" << endl;
+                        strcpy(buffer, ELECTION_RESPONSE);
+                        sendto(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, clientLen);
+                    }
                 }
             }
         }
