@@ -90,6 +90,7 @@ int Interface::server() {
         
         system("clear");
     }
+    cout << "Fechei server interface" << endl;
     return 0;
 }
 

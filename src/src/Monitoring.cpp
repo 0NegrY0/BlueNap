@@ -120,7 +120,7 @@ int Monitoring::server() {
         cout << "IsMaster fora do for: " << isMaster << endl;
         if (isMaster == false) {
             cout << "Vou dar break" << endl;
-            break;
+            pthread_exit(NULL);
         }
         sleep(1);
     }
