@@ -18,6 +18,7 @@
 #define NEW_LEADER_MESSAGE "NEW LEADER"
 #define OLD_LEADER_RESPONSE "OK SORRY"
 #define OK "OK"
+#include <atomic>
 
 using namespace std;
 
