@@ -33,6 +33,7 @@ int Monitoring::server() {
             cout << "ENviando mensagem ao cliente" << clientIp << ":" << clientPort << endl;
 
             if (computers[i].ipAddress == oldServerIP) {
+                setSocketTimeout(sockfd, 1);
                 strcpy(buffer, NEW_LEADER_MESSAGE);
                 sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
                 clientAddr = configureAdress(clientIp, clientPort);
@@ -48,6 +49,7 @@ int Monitoring::server() {
                         mtx.unlock();
                     }
                 }
+                setSocketTimeout(sockfd, TIMEOUT_SEC);
             }
             else {
                 vector<char> send;
@@ -184,7 +186,7 @@ int Monitoring::client() {
             int id = stoi(message.substr(maxIdPos + strlen(ELECTION_MESSAGE)));
             int myId = myPort - DEFAULT_PORT;
             if (myId < id) {
-                string response = "RESPONSE" + to_string(myId);
+                string response = ELECTION_RESPONSE + to_string(myId);
                 char* responseMessage = new char[MAX_BUFFER_SIZE];
                 snprintf(responseMessage, MAX_BUFFER_SIZE, "%s", response.c_str());
                 cout << "MONITORING - Meu id é menor, vou chamar uma eleiçao: " << responseMessage << endl;
