@@ -114,12 +114,11 @@ void Management::wakeOnLan(const string& macAddress, const string& ipAddress) {
     close(sockfd);
 }
 
-void Management::startElection(int initiator) {
+void Management::startElection(int initiator, int& sockfd) {
     int myId = myPort - DEFAULT_PORT;
     cout << "Process " << myId << " started an election." << endl;
     bool amILeader = true;
     char buffer[MAX_BUFFER_SIZE];
-    int sockfd = createSocket();
     setSocketTimeout(sockfd, 1);
 
     for (auto& comp : computers) {
@@ -145,8 +144,11 @@ void Management::startElection(int initiator) {
             }
         }
     }
+    setSocketTimeout(sockfd, 10);
     if (amILeader) {
+        mtx.lock();
         oldServerIP = serverIp;
+        mtx.unlock();
         announceElectionResult();
     }
 }
