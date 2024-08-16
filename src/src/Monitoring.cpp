@@ -105,29 +105,21 @@ int Monitoring::server() {
                             }
                         }
                     }while(!exit);
-                    cout << "Mestre me ouviu" << endl;
                     setSocketTimeout(sockfd, TIMEOUT_SEC);
                     sleep(2);
                     mtx.lock();
                     isMaster = false;
                     oldServerIP = "";
                     mtx.unlock();
-                    cout << "isMaster: " << isMaster << endl;
                 }
             }
         }
-        cout << "sai do for";
-        cout << "IsMaster fora do for: " << isMaster << endl;
         if (isMaster == false) {
-            cout << "Vou dar break" << endl;
             close(sockfd);
             pthread_exit(NULL);
         }
         sleep(1);
     }
-    cout << "sai do while do master";
-    
-    cout << "fechei o socket";
     return 0;
 }
     
@@ -162,6 +154,7 @@ int Monitoring::client() {
         
         if (bytesReceived < 0) {
             if (isTimeoutError()) {
+                cout << "Nao recebi nada, vou chamar eleicao" << endl;
                 management.startElection(myPort - DEFAULT_PORT, sockfd);
             }
             else {
@@ -171,13 +164,14 @@ int Monitoring::client() {
         }
 
         buffer[bytesReceived] = '\0';
+        cout << "recebi alguma coisa: " << buffer << endl;
         if (isMessage(buffer, MONITORING_MESSAGE)) {
-            management.receiveComputers(buffer);            //TODO: Implementar a função receiveComputers
+            management.receiveComputers(buffer);
             strcpy(buffer, MONITORING_MESSAGE_RESPONSE);
             sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, serverLen);
         }
 
-        if (isElectionMessage(buffer)) {
+        else if (isElectionMessage(buffer)) {
             string message(buffer);
             cout << "Recebi mensagem de eleicao:" << buffer << endl;
 
@@ -200,7 +194,7 @@ int Monitoring::client() {
             }
         } 
 
-        if (isMessage(buffer, ELECTION_RESULT)) {
+        else if (isMessage(buffer, ELECTION_RESULT)) {
             cout << "Recebi mensagem de resultado de eleição" << endl;
             string message(buffer);
             cout << "Mensagem: " << message << endl;

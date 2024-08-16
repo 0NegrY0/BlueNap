@@ -313,9 +313,8 @@ void Management::receiveComputers(char buffer[]) {
             computers[i] = deserialize(currentPos, bytesRead);
             currentPos += bytesRead;
         }
+        mtx.lock();
         internalClock = clockReceived;
-        if (isMaster == true) {
-            isMaster = false;
-        }
+        mtx.unlock();
     }
 }

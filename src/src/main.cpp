@@ -112,17 +112,18 @@ void server(shared_ptr<Discovery> discovery, shared_ptr<Monitoring> monitoring, 
     threads.push_back(thread(&Discovery::server, discovery));
     threads.push_back(thread(&Monitoring::server, monitoring));
     threads.push_back(thread(&Interface::server, interface));
-    cout << "Vou dar join na thread monitoring" << endl;
     if (threads[1].joinable()) {
         threads[1].join();
     }
+    cout << "Join Monitoring" << endl;
     if (threads[2].joinable()) {
         threads[2].join();
     }
-    //joinThreads(threads);
-    cout << "Acabou as threads" << endl;
+    cout << "Join Interface" << endl;
+    threads[0].join();
+    cout << "Join Discovery" << endl;
+    
     if (!isMaster) { // precisa atualizar o valor pro server antigo
-        cout << "vou startar o client" << endl;
         client(discovery, monitoring, interface);
     }
 }
