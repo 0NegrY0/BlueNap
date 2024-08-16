@@ -137,6 +137,7 @@ void Management::startElection(int initiator, int& sockfd) {
             clientAddr = configureAdress(comp.ipAddress, comp.port);
             int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
             if (bytesReceived > 0) {
+                cout << "Recebi algo:" << buffer << endl;
                 if (isMessage(buffer, ELECTION_RESPONSE)) {
                     cout << "Deu ruim pra mim, nao sou o lider" << endl;
                     amILeader = false;
@@ -156,7 +157,7 @@ void Management::startElection(int initiator, int& sockfd) {
                     int id = stoi(message.substr(maxIdPos + strlen(ELECTION_MESSAGE)));
                     int myId = myPort - DEFAULT_PORT;
                     if (myId < id) {
-                        string response = "RESPONSE" + to_string(myId);
+                        string response = ELECTION_RESPONSE + to_string(myId);
                         char* responseMessage = new char[MAX_BUFFER_SIZE];
                         snprintf(responseMessage, MAX_BUFFER_SIZE, "%s", response.c_str());
                         sendto(sockfd, responseMessage, strlen(responseMessage), 0, (struct sockaddr*)&clientAddr, clientLen);
