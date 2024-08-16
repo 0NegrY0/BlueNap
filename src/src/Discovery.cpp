@@ -15,6 +15,7 @@ int Discovery::server() {
     socklen_t clientLen = sizeof(clientAddr);
     char buffer[MAX_BUFFER_SIZE];
     int sockfd = createSocket();
+    setSocketTimeout(sockfd, 3);
 
     listenAtPort(sockfd, PORTA_DISCOVERY);
     Management management;
