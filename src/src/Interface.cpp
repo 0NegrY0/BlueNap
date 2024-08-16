@@ -10,6 +10,7 @@
 using namespace std;
 
 int Interface::server() {
+    cout << "Iniciando server Interface..." << endl;
     Management management;
 
     int index = 0;
@@ -94,6 +95,7 @@ int Interface::server() {
 
 
 int Interface::client() {
+    cout << "Iniciando client Interface..." << endl;
     Management management;
     sleep(1);
     // Testar isso ai 

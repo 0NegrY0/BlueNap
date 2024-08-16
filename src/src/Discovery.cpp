@@ -10,7 +10,7 @@ using namespace std;
 #define PORTA_DISCOVERY 44000
 
 int Discovery::server() {
-    
+    cout << "Iniciando server Discovery..." << endl;
     struct sockaddr_in clientAddr;
     socklen_t clientLen = sizeof(clientAddr);
     char buffer[MAX_BUFFER_SIZE];

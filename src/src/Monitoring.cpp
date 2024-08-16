@@ -13,7 +13,7 @@
 using namespace std;
 
 int Monitoring::server() {
-
+    cout << "Iniciando server Monitoring..." << endl;
     char buffer[MAX_BUFFER_SIZE];
     Management management;
     int sockfd = createSocket();
