@@ -146,6 +146,7 @@ int Monitoring::client() {
     Management management;
     
     while(!shouldExit && !isMaster) {
+        setSocketTimeout(sockfd, 8);
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, &serverLen);
         
         if (bytesReceived < 0) {
