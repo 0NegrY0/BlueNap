@@ -142,6 +142,7 @@ int Interface::server() {
         // }
         
         system("clear");
+            }
     }
     return 0;
 }
