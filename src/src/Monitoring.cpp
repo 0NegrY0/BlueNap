@@ -78,7 +78,7 @@ int Monitoring::server() {
                         bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr *)&clientAddr, &clientLen);
                     } while (bytesReceived < 0 && errno == EINTR); 
                     cout << "Vou Fechar" << endl;
-                    break;
+                    continue;
                 }
             }
             else {
@@ -105,12 +105,14 @@ int Monitoring::server() {
                             }
                         }
                     }while(!exit);
+                    cout << "Mestre me ouviu" << endl;
                     setSocketTimeout(sockfd, TIMEOUT_SEC);
                     sleep(2);
                     mtx.lock();
                     isMaster = 0;
                     oldServerIP = "";
                     mtx.unlock();
+                    cout << "isMaster: " << isMaster << endl;
                 }
             }
         }
@@ -127,7 +129,7 @@ int Monitoring::client() {
     while (serverIp.empty());
 
     int sockfd = createSocket(); // recriar o socket se der erro.
-    setSocketTimeout(sockfd, 15);
+    setSocketTimeout(sockfd, 7);
 
     struct sockaddr_in localAddr;
     socklen_t localLen = sizeof(localAddr);
