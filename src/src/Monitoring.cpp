@@ -109,7 +109,7 @@ int Monitoring::server() {
                     setSocketTimeout(sockfd, TIMEOUT_SEC);
                     sleep(2);
                     mtx.lock();
-                    isMaster = 0;
+                    isMaster = false;
                     oldServerIP = "";
                     mtx.unlock();
                     cout << "isMaster: " << isMaster << endl;
@@ -118,7 +118,7 @@ int Monitoring::server() {
         }
         cout << "sai do for";
         cout << "IsMaster fora do for: " << isMaster << endl;
-        if (isMaster == 0) {
+        if (isMaster == false) {
             cout << "Vou dar break" << endl;
             break;
         }

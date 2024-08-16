@@ -189,7 +189,7 @@ void Management::announceElectionResult() {
     }
     close(sockfd);
     mtx.lock();
-    isMaster = 1;
+    isMaster = true;
     mtx.unlock();
 }
 
@@ -314,8 +314,8 @@ void Management::receiveComputers(char buffer[]) {
             currentPos += bytesRead;
         }
         internalClock = clockReceived;
-        if (isMaster == 1) {
-            isMaster = 0;
+        if (isMaster == true) {
+            isMaster = false;
         }
     }
 }

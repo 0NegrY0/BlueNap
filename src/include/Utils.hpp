@@ -43,7 +43,7 @@ extern string serverMac;
 extern bool shouldExit;
 extern int internalClock;
 extern int nextID;
-extern int isMaster;
+extern atomic<bool> isMaster;
 extern string oldServerIP;
 
 class Utils {

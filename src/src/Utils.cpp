@@ -9,6 +9,7 @@
 #include <fstream>
 #include <string>
 #include <unistd.h>
+#include <atomic>
 
 using namespace std;
 
@@ -22,7 +23,8 @@ int myPort = 0;
 bool shouldExit = false;
 int internalClock = -1;
 int nextID = 0;
-int isMaster = 0;
+//isMaster = 0;
+atomic<bool> isMaster(false);
 string oldServerIP = "";
 
 string Utils::getIPAddress() {

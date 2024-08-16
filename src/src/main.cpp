@@ -24,7 +24,16 @@ void server(shared_ptr<Discovery> discovery, shared_ptr<Monitoring> monitoring, 
 int main(int agrc, char* agrv[]) {
 
     cout << "Are you the master? (1/0): ";
-    cin >> isMaster;
+    int input;
+    cin >> input;
+
+    if (input == 1) {
+        isMaster = true;
+    } else if (input == 0) {
+        isMaster = false;
+    } else {
+        cerr << "Entrada inválida!" << endl;
+    }
 
     vector<thread> threads;
       
@@ -102,7 +111,6 @@ void server(shared_ptr<Discovery> discovery, shared_ptr<Monitoring> monitoring, 
     threads.push_back(thread(&Discovery::server, discovery));
     threads.push_back(thread(&Monitoring::server, monitoring));
     threads.push_back(thread(&Interface::server, interface));
-    cout << "sai das threads" << endl;
     joinThreads(threads);
     cout << "Acabou as threads" << endl;
     if (!isMaster) { // precisa atualizar o valor pro server antigo
