@@ -120,12 +120,13 @@ int Monitoring::server() {
         cout << "IsMaster fora do for: " << isMaster << endl;
         if (isMaster == false) {
             cout << "Vou dar break" << endl;
+            close(sockfd);
             pthread_exit(NULL);
         }
         sleep(1);
     }
     cout << "sai do while do master";
-    close(sockfd);
+    
     cout << "fechei o socket";
     return 0;
 }

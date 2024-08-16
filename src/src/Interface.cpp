@@ -89,6 +89,10 @@ int Interface::server() {
         }
         
         system("clear");
+
+        if (isMaster == false) {
+            pthread_exit(NULL);
+        }
     }
     cout << "Fechei server interface" << endl;
     return 0;
