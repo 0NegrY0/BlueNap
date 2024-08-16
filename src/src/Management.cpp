@@ -190,6 +190,7 @@ void Management::startElection(int initiator, int& sockfd) {
         mtx.lock();
         oldServerIP = serverIp;
         mtx.unlock();
+        sleep(2);
         announceElectionResult();
     }
 }
