@@ -89,19 +89,7 @@ int Interface::server() {
 
         string input; 
 
-        fd_set fds;
-        FD_ZERO(&fds);
-        FD_SET(STDIN_FILENO, &fds);
-
-        struct timeval tv;
-        tv.tv_sec = 2;
-        tv.tv_usec = 0;
-
-        int ret = select(STDIN_FILENO + 1, &fds, nullptr, nullptr, &tv);
-
-        if (ret > 0){
-            string input; 
-            getline(cin, input);
+        getline(cin, input);
             if (input == "1"){
                 cout << "Enter the ID of the client you want to awake: ";
                 cin >> input;
@@ -118,9 +106,40 @@ int Interface::server() {
                         management.wakeOnLan(c.macAddress, c.ipAddress);
                         sleep(1);
                     }
-                }         
-            }
-        }
+                }  
+
+        // fd_set fds;
+        // FD_ZERO(&fds);
+        // FD_SET(STDIN_FILENO, &fds);
+
+        // struct timeval tv;
+        // tv.tv_sec = 2;
+        // tv.tv_usec = 0;
+
+        // int ret = select(STDIN_FILENO + 1, &fds, nullptr, nullptr, &tv);
+
+        // if (ret > 0){
+        //     string input; 
+        //     getline(cin, input);
+        //     if (input == "1"){
+        //         cout << "Enter the ID of the client you want to awake: ";
+        //         cin >> input;
+
+        //         int id = stoi(input);
+        //         for (auto& c : computers){
+        //             if (c.id == id) {
+        //                 management.wakeOnLan(c.macAddress, c.ipAddress);
+        //                 management.wakeOnLan(c.macAddress, c.ipAddress);
+        //                 management.wakeOnLan(c.macAddress, c.ipAddress);
+        //                 management.wakeOnLan(c.macAddress, c.ipAddress);
+        //                 management.wakeOnLan(c.macAddress, c.ipAddress);
+        //                 management.wakeOnLan(c.macAddress, c.ipAddress);
+        //                 management.wakeOnLan(c.macAddress, c.ipAddress);
+        //                 sleep(1);
+        //             }
+        //         }         
+        //     }
+        // }
         
         system("clear");
     }
@@ -184,28 +203,36 @@ int Interface::client() {
         cout << "Enter 'EXIT' to leave, Enter anything to update" << endl;
 
         string input; 
-        
-        fd_set fds;
-        FD_ZERO(&fds);
-        FD_SET(STDIN_FILENO, &fds);
-
-        struct timeval tv;
-        tv.tv_sec = 5;
-        tv.tv_usec = 0;
-
-        int ret = select(STDIN_FILENO + 1, &fds, nullptr, nullptr, &tv);
-
-        if (ret > 0){
-            string input; 
-            getline(cin, input);
+        getline(cin, input);
             if (input == "EXIT"){
                 management.askToCloseConnection();
                 sleep(1);
                 mtx.lock();
                 shouldExit = true;
                 mtx.unlock();
-            }      
-        }
+            }  
+        
+        // fd_set fds;
+        // FD_ZERO(&fds);
+        // FD_SET(STDIN_FILENO, &fds);
+
+        // struct timeval tv;
+        // tv.tv_sec = 5;
+        // tv.tv_usec = 0;
+
+        // int ret = select(STDIN_FILENO + 1, &fds, nullptr, nullptr, &tv);
+
+        // if (ret > 0){
+        //     string input; 
+        //     getline(cin, input);
+        //     if (input == "EXIT"){
+        //         management.askToCloseConnection();
+        //         sleep(1);
+        //         mtx.lock();
+        //         shouldExit = true;
+        //         mtx.unlock();
+        //     }      
+        // }
         
         system("clear");
     }
