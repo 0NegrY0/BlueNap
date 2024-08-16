@@ -118,6 +118,9 @@ int Monitoring::server() {
         }
         cout << "sai do for";
         cout << "IsMaster fora do for: " << isMaster << endl;
+        if (isMaster == 0) {
+            break;
+        }
         sleep(1);
     }
     cout << "sai do while do master";

@@ -188,7 +188,9 @@ void Management::announceElectionResult() {
         }
     }
     close(sockfd);
+    mtx.lock();
     isMaster = 1;
+    mtx.unlock();
 }
 
 Computer Management::deserialize(const char* data, size_t& bytesRead) {

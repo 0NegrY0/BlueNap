@@ -102,7 +102,7 @@ void server(shared_ptr<Discovery> discovery, shared_ptr<Monitoring> monitoring, 
     threads.push_back(thread(&Discovery::server, discovery));
     threads.push_back(thread(&Monitoring::server, monitoring));
     threads.push_back(thread(&Interface::server, interface));
-
+    cout << "sai das threads" << endl;
     joinThreads(threads);
     cout << "Acabou as threads" << endl;
     if (!isMaster) { // precisa atualizar o valor pro server antigo
