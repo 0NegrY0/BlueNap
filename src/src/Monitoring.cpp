@@ -31,8 +31,6 @@ int Monitoring::server() {
             struct sockaddr_in clientAddr = configureAdress(clientIp, clientPort);
             socklen_t clientLen = sizeof(clientAddr);
 
-            cout << "Vou enviar mensagem de monitoramento para: " << clientIp << ":" << clientPort << endl;
-
             if (computers[i].ipAddress == oldServerIP) {
                 strcpy(buffer, NEW_LEADER_MESSAGE);
                 sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
@@ -40,7 +38,6 @@ int Monitoring::server() {
                 memset(buffer, 0, MAX_BUFFER_SIZE);
                 int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
                 if (bytesReceived > 0) {
-                    cout << "Recebi alguma coisa:" << buffer << endl;
                     if (strcmp(buffer, OLD_LEADER_RESPONSE) == 0) {
                         strcpy(buffer, OK);
                         sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
@@ -151,7 +148,6 @@ int Monitoring::client() {
         
         if (bytesReceived < 0) {
             if (isTimeoutError()) {
-                cout << "Nao recebi nada, vou chamar eleicao" << endl;
                 management.startElection(myPort - DEFAULT_PORT);
             }
             else {
