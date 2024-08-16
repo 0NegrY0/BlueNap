@@ -119,6 +119,7 @@ int Monitoring::server() {
         cout << "sai do for";
         cout << "IsMaster fora do for: " << isMaster << endl;
         if (isMaster == 0) {
+            cout << "Vou dar break" << endl;
             break;
         }
         sleep(1);
@@ -134,7 +135,7 @@ int Monitoring::client() {
     while (serverIp.empty());
 
     int sockfd = createSocket(); // recriar o socket se der erro.
-    setSocketTimeout(sockfd, 7);
+    setSocketTimeout(sockfd, 5);
 
     struct sockaddr_in localAddr;
     socklen_t localLen = sizeof(localAddr);
