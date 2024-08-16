@@ -10,7 +10,6 @@
 using namespace std;
 
 int Interface::server() {
-    cout << "Iniciando server Interface..." << endl;
     Management management;
 
     int index = 0;
@@ -20,7 +19,6 @@ int Interface::server() {
             break;
         }
     }
-    cout << "Tamanho" << computers.size();
 
     while (isMaster){
 
@@ -91,13 +89,11 @@ int Interface::server() {
         system("clear");
 
     }
-    cout << "Fechei server interface" << endl;
     return 0;
 }
 
 
 int Interface::client() {
-    cout << "Iniciando client Interface..." << endl;
     Management management;
     sleep(1);
     // Testar isso ai 

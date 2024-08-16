@@ -10,7 +10,6 @@ using namespace std;
 #define PORTA_DISCOVERY 44000
 
 int Discovery::server() {
-    cout << "Iniciando server Discovery..." << endl;
     struct sockaddr_in clientAddr;
     socklen_t clientLen = sizeof(clientAddr);
     char buffer[MAX_BUFFER_SIZE];
@@ -21,10 +20,12 @@ int Discovery::server() {
     Management management;
 
     while (isMaster) {
-        cout << "IsMaster: " << isMaster << endl;
         memset(buffer, 0, sizeof(buffer));
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
         if (bytesReceived < 0) {
+            if (isTimeoutError()) {
+                continue;
+            }
             cerr << "Error in recvfrom(): " << " erro discovery " << strerror(errno) << endl;
             break;
         }
@@ -77,7 +78,6 @@ int Discovery::server() {
         }
     }
     close(sockfd);
-    cout << "Fechei server discovery" << endl;
     return 0;
 }
 
