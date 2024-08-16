@@ -17,7 +17,7 @@ public:
     void handleStatusUpdate(int id, bool isAwake);
     struct Computer createComputer(string clientIp, string clienMac);
     int getPort(int computerId);
-    void startElection(int initiator, int& sockfd);
+    void startElection(int initiator);
     void announceElectionResult();
     void sendComputers(int socket, vector<Computer>& vec);
     vector<Computer>receiveComputers(int socket);

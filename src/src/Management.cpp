@@ -114,17 +114,12 @@ void Management::wakeOnLan(const string& macAddress, const string& ipAddress) {
     close(sockfd);
 }
 
-void Management::startElection(int initiator, int &sockfd) {
+void Management::startElection(int initiator) {
     int myId = myPort - DEFAULT_PORT;
     cout << "Process " << myId << " started an election." << endl;
     bool amILeader = true;
     char buffer[MAX_BUFFER_SIZE];
-    int opt = 1;
-    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
-        std::cerr << "Erro ao configurar o socket" << std::endl;
-        close(sockfd);
-        return;
-    }
+    int sockfd = createSocket();
     setSocketTimeout(sockfd, 1);
 
     for (auto& comp : computers) {

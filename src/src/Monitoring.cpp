@@ -117,7 +117,6 @@ int Monitoring::server() {
             close(sockfd);
             pthread_exit(NULL);
         }
-        sleep(1);
     }
     return 0;
 }
@@ -126,7 +125,7 @@ int Monitoring::client() {
     while (serverIp.empty());
 
     int sockfd = createSocket(); // recriar o socket se der erro.
-    setSocketTimeout(sockfd, 8);
+    setSocketTimeout(sockfd, 15);
 
     struct sockaddr_in localAddr;
     socklen_t localLen = sizeof(localAddr);
@@ -154,7 +153,7 @@ int Monitoring::client() {
         if (bytesReceived < 0) {
             if (isTimeoutError()) {
                 cout << "Nao recebi nada, vou chamar eleicao" << endl;
-                management.startElection(myPort - DEFAULT_PORT, sockfd);
+                management.startElection(myPort - DEFAULT_PORT);
             }
             else {
                 std::cerr << "Error in recvfrom(): " << strerror(errno) << endl;
@@ -189,7 +188,7 @@ int Monitoring::client() {
                 cout << "Meu id é menor, vou chamar uma eleiçao: " << responseMessage << endl;
                 sendto(sockfd, responseMessage, strlen(responseMessage), 0, (struct sockaddr*)&serverAddr, serverLen);
                 sleep(2);
-                management.startElection(myId, sockfd);
+                management.startElection(myId);
             }
         } 
 
