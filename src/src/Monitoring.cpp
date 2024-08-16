@@ -107,6 +107,12 @@ int Monitoring::server() {
                     oldServerIP = "";
                     mtx.unlock();
                 }
+
+                if (isMessage(buffer, ELECTION_MESSAGE)) {
+                    cout << "O idiota acha que eu to dormindo" << endl;
+                    strcpy(buffer, ELECTION_MESSAGE)
+                    sendto(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, clientLen);
+                }
             }
         }
         if (isMaster == false) {

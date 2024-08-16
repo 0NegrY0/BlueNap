@@ -119,7 +119,7 @@ void Management::startElection(int initiator, int& sockfd) {
     cout << "Process " << myId << " started an election." << endl;
     bool amILeader = true;
     char buffer[MAX_BUFFER_SIZE];
-    setSocketTimeout(sockfd, 1);
+    setSocketTimeout(sockfd, 2);
 
     for (auto& comp : computers) {
         if (comp.isAwake && comp.id < myId) {
