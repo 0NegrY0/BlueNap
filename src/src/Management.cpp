@@ -138,6 +138,10 @@ void Management::startElection(int initiator, int& sockfd) {
             int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
             if (bytesReceived > 0) {
                 cout << "Recebi algo:" << buffer << endl;
+                if (isMessage(buffer, MONITORING_MESSAGE)) {
+                    amILeader = false;
+                    break;
+                }
                 if (isMessage(buffer, ELECTION_RESPONSE)) {
                     cout << "Deu ruim pra mim, nao sou o lider" << endl;
                     amILeader = false;
