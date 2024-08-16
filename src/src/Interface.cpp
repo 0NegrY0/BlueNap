@@ -110,6 +110,12 @@ int Interface::server() {
                 for (auto& c : computers){
                     if (c.id == id) {
                         management.wakeOnLan(c.macAddress, c.ipAddress);
+                        management.wakeOnLan(c.macAddress, c.ipAddress);
+                        management.wakeOnLan(c.macAddress, c.ipAddress);
+                        management.wakeOnLan(c.macAddress, c.ipAddress);
+                        management.wakeOnLan(c.macAddress, c.ipAddress);
+                        management.wakeOnLan(c.macAddress, c.ipAddress);
+                        management.wakeOnLan(c.macAddress, c.ipAddress);
                         sleep(1);
                     }
                 }         

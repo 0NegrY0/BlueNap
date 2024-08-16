@@ -165,6 +165,7 @@ void Management::announceElectionResult() {
         if (comp.id == myPort - DEFAULT_PORT) {
             mtx.lock();
             comp.isServer = true;
+            comp.isAwake = true;
             mtx.unlock();
         }
         else if (comp.isServer) {
