@@ -157,7 +157,6 @@ int Monitoring::client() {
         }
 
         buffer[bytesReceived] = '\0';
-        cout << "recebi alguma coisa: " << buffer << endl;
         if (isMessage(buffer, MONITORING_MESSAGE)) {
             management.receiveComputers(buffer);
             strcpy(buffer, MONITORING_MESSAGE_RESPONSE);
