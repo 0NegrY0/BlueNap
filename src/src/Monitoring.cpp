@@ -74,10 +74,8 @@ int Monitoring::server() {
                 else {
                     cerr << "Error in recvfrom(): " << "erro monitoring" << strerror(errno) << endl;
                     do {
-                        cout << "Enviei" << endl;
                         bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr *)&clientAddr, &clientLen);
                     } while (bytesReceived < 0 && errno == EINTR); 
-                    cout << "Vou Fechar" << endl;
                     continue;
                 }
             }
@@ -124,7 +122,6 @@ int Monitoring::server() {
 }
     
 int Monitoring::client() {
-    cout << "Monitor cliente" << endl;
     while (serverIp.empty());
 
     int sockfd = createSocket(); // recriar o socket se der erro.

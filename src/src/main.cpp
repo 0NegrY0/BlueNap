@@ -120,7 +120,9 @@ void server(shared_ptr<Discovery> discovery, shared_ptr<Monitoring> monitoring, 
         threads[2].join();
     }
     cout << "Join Interface" << endl;
-    threads[0].join();
+    if (threads[0].joinable()) {
+        threads[0].join();
+    }
     cout << "Join Discovery" << endl;
     
     if (!isMaster) { // precisa atualizar o valor pro server antigo
