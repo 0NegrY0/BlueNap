@@ -161,7 +161,6 @@ void Management::startElection(int initiator, int& sockfd) {
                         char* responseMessage = new char[MAX_BUFFER_SIZE];
                         snprintf(responseMessage, MAX_BUFFER_SIZE, "%s", response.c_str());
                         sendto(sockfd, responseMessage, strlen(responseMessage), 0, (struct sockaddr*)&clientAddr, clientLen);
-                        sleep(2);
                         cout << "Meu id é menor, vou chamar uma eleiçao: " << responseMessage << endl;
                         startElection(myId, sockfd);
                     }
