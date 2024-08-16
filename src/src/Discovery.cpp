@@ -73,12 +73,8 @@ int Discovery::server() {
             sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
             
         }
-        if (isMaster == false) {
-            close(sockfd);
-            pthread_exit(NULL);
-        }
     }
-
+    close(sockfd);
     return 0;
 }
 
