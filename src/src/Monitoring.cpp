@@ -179,7 +179,7 @@ int Monitoring::client() {
                 string response = "RESPONSE" + to_string(myId);
                 char* responseMessage = new char[MAX_BUFFER_SIZE];
                 snprintf(responseMessage, MAX_BUFFER_SIZE, "%s", response.c_str());
-                cout << "Meu id é menor, vou chamar uma eleiçao: " << responseMessage << endl;
+                cout << "MONITORING - Meu id é menor, vou chamar uma eleiçao: " << responseMessage << endl;
                 sendto(sockfd, responseMessage, strlen(responseMessage), 0, (struct sockaddr*)&serverAddr, serverLen);
                 sleep(2);
                 management.startElection(myId, sockfd);

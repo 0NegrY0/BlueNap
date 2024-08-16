@@ -130,6 +130,7 @@ void Management::startElection(int initiator, int& sockfd) {
             string message = ELECTION_MESSAGE + to_string(myId);
             char* electionMessage = new char[MAX_BUFFER_SIZE];
             snprintf(electionMessage, MAX_BUFFER_SIZE, "%s", message.c_str());
+            cout << "Vamos ver se esse pc tem id menor:" << comp.ipAddress << ":" << comp.port << endl;
 
             sendto(sockfd, electionMessage, strlen(electionMessage), 0, (struct sockaddr*)&clientAddr, clientLen);
 
@@ -141,6 +142,33 @@ void Management::startElection(int initiator, int& sockfd) {
                     amILeader = false;
                     break;
                 }  
+
+                else if (isElectionMessage(buffer)) {
+                    string message(buffer);
+                    cout << "Recebi mensagem de eleicao:" << buffer << endl;
+
+                    size_t maxIdPos = message.find(ELECTION_MESSAGE);
+
+                    if (maxIdPos == string::npos) {
+                        cerr << "Invalid election message format" << endl;
+                        continue;
+                    }
+                    int id = stoi(message.substr(maxIdPos + strlen(ELECTION_MESSAGE)));
+                    int myId = myPort - DEFAULT_PORT;
+                    if (myId < id) {
+                        string response = "RESPONSE" + to_string(myId);
+                        char* responseMessage = new char[MAX_BUFFER_SIZE];
+                        snprintf(responseMessage, MAX_BUFFER_SIZE, "%s", response.c_str());
+                        sendto(sockfd, responseMessage, strlen(responseMessage), 0, (struct sockaddr*)&serverAddr, serverLen);
+                        sleep(2);
+                        cout << "Meu id é menor, vou chamar uma eleiçao: " << responseMessage << endl;
+                        management.startElection(myId, sockfd);
+                    }
+                    else {
+                        amILeader = false;
+                        break;
+                    }
+                } 
             }
         }
     }
