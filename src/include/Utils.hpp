@@ -7,7 +7,7 @@
 #include <filesystem>
 
 #define MAX_BUFFER_SIZE 1024
-#define TIMEOUT_SEC 3
+#define TIMEOUT_SEC 5
 #define DEFAULT_PORT 40000
 #define TEST_PORT 40001
 #define EXIT_MESSAGE "KILLME"

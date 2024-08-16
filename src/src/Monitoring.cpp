@@ -19,7 +19,6 @@ int Monitoring::server() {
     setSocketTimeout(sockfd, TIMEOUT_SEC);
     listenAtPort(sockfd, myPort);
     while (isMaster) {
-        
         for (size_t i = 0; i < computers.size(); i++) {
             
             if (computers[i].id == myPort - DEFAULT_PORT) {
@@ -117,6 +116,7 @@ int Monitoring::server() {
             close(sockfd);
             pthread_exit(NULL);
         }
+        sleep(1);
     }
     return 0;
 }
@@ -125,7 +125,7 @@ int Monitoring::client() {
     while (serverIp.empty());
 
     int sockfd = createSocket(); // recriar o socket se der erro.
-    setSocketTimeout(sockfd, 15);
+    setSocketTimeout(sockfd, 10);
 
     struct sockaddr_in localAddr;
     socklen_t localLen = sizeof(localAddr);
