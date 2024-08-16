@@ -164,6 +164,7 @@ int Monitoring::client() {
 
         buffer[bytesReceived] = '\0';
         if (isMessage(buffer, MONITORING_MESSAGE)) {
+            cout << "Recebi mensgaem de monitoramento" << endl;
             management.receiveComputers(buffer);
             strcpy(buffer, MONITORING_MESSAGE_RESPONSE);
             sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, serverLen);
