@@ -32,6 +32,8 @@ int Monitoring::server() {
             struct sockaddr_in clientAddr = configureAdress(clientIp, clientPort);
             socklen_t clientLen = sizeof(clientAddr);
 
+            cout << "Vou enviar mensagem de monitoramento para: " << clientIp << ":" << clientPort << endl;
+
             if (computers[i].ipAddress == oldServerIP) {
                 strcpy(buffer, NEW_LEADER_MESSAGE);
                 sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
