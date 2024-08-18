@@ -119,22 +119,22 @@ void Management::startElection(int initiator, int& sockfd) {
     cout << "Process " << myId << " started an election." << endl;
     bool amILeader = true;
     char buffer[MAX_BUFFER_SIZE];
-    setSocketTimeout(sockfd, 1);
+    setSocketTimeout(sockfd, 2);
 
-    for (auto& comp : computers) {
-        if (comp.isAwake && comp.id < myId) {
+    for (int i = computers.size() - 1; i >= 0; i--) {
+        if (computers[i].isAwake && computers[i].id < myId) {
             
-            struct sockaddr_in clientAddr = configureAdress(comp.ipAddress, comp.port);
+            struct sockaddr_in clientAddr = configureAdress(computers[i].ipAddress, computers[i].port);
             socklen_t clientLen = sizeof(clientAddr);
 
             string message = ELECTION_MESSAGE + to_string(myId);
             char* electionMessage = new char[MAX_BUFFER_SIZE];
             snprintf(electionMessage, MAX_BUFFER_SIZE, "%s", message.c_str());
-            cout << "Vamos ver se esse pc tem id menor:" << comp.ipAddress << ":" << comp.port << endl;
+            cout << "Vamos ver se esse pc tem id menor:" << computers[i].ipAddress << ":" << computers[i].port << endl;
 
             sendto(sockfd, electionMessage, strlen(electionMessage), 0, (struct sockaddr*)&clientAddr, clientLen);
 
-            clientAddr = configureAdress(comp.ipAddress, comp.port);
+            clientAddr = configureAdress(computers[i].ipAddress, computers[i].port);
             int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
             if (bytesReceived > 0) {
                 cout << "Recebi algo:" << buffer << endl;
@@ -185,12 +185,11 @@ void Management::startElection(int initiator, int& sockfd) {
             }
         }
     }
-    setSocketTimeout(sockfd, 10);
+    setSocketTimeout(sockfd, 15);
     if (amILeader) {
         mtx.lock();
         oldServerIP = serverIp;
         mtx.unlock();
-        sleep(2);
         announceElectionResult();
     }
 }
@@ -219,8 +218,6 @@ void Management::announceElectionResult() {
             mtx.unlock();
         }
         if (comp.isAwake && comp.id != myPort - DEFAULT_PORT) {
-            
-            
             struct sockaddr_in clientAddr = configureAdress(comp.ipAddress, comp.port);
             socklen_t clientLen = sizeof(clientAddr);
 
@@ -342,19 +339,17 @@ void Management::receiveComputers(char buffer[]) {
 
     int clockReceived = stoi(message.substr(pos + strlen(MONITORING_MESSAGE)));
     currentPos += message.size() + 1;
-    if (clockReceived > internalClock) {
-        int vecSize;
-        memcpy(&vecSize, currentPos, sizeof(int));
-        currentPos += sizeof(int); 
+    int vecSize;
+    memcpy(&vecSize, currentPos, sizeof(int));
+    currentPos += sizeof(int); 
 
-        computers.resize(vecSize);
-        for (int i = 0; i < vecSize; ++i) {
-            size_t bytesRead = 0;
-            computers[i] = deserialize(currentPos, bytesRead);
-            currentPos += bytesRead;
-        }
-        mtx.lock();
-        internalClock = clockReceived;
-        mtx.unlock();
+    computers.resize(vecSize);
+    for (int i = 0; i < vecSize; ++i) {
+        size_t bytesRead = 0;
+        computers[i] = deserialize(currentPos, bytesRead);
+        currentPos += bytesRead;
     }
+    mtx.lock();
+    internalClock = clockReceived;
+    mtx.unlock();
 }

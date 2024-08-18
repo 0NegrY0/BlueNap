@@ -131,7 +131,7 @@ int Monitoring::client() {
     while (serverIp.empty());
 
     int sockfd = createSocket();
-    setSocketTimeout(sockfd, 10);
+    setSocketTimeout(sockfd, 15);
 
     struct sockaddr_in localAddr;
     socklen_t localLen = sizeof(localAddr);
