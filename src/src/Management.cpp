@@ -123,33 +123,27 @@ void Management::startElection(int initiator, int& sockfd) {
             string message = ELECTION_MESSAGE + to_string(myId);
             char* electionMessage = new char[MAX_BUFFER_SIZE];
             snprintf(electionMessage, MAX_BUFFER_SIZE, "%s", message.c_str());
-            cout << "Vamos ver se esse pc tem id menor:" << computers[i].ipAddress << ":" << computers[i].port << endl;
 
             sendto(sockfd, electionMessage, strlen(electionMessage), 0, (struct sockaddr*)&clientAddr, clientLen);
 
             clientAddr = configureAdress(computers[i].ipAddress, computers[i].port);
             int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
             if (bytesReceived > 0) {
-                cout << "Recebi algo:" << buffer << endl;
                 if (isMessage(buffer, MONITORING_MESSAGE)) {
-                    cout << "Deu ruim pra mim, nao sou o lider" << endl;
                     amILeader = false;
                     break;
                 }
                 if (isMessage(buffer, ELECTION_RESPONSE)) {
-                    cout << "Deu ruim pra mim, nao sou o lider" << endl;
                     amILeader = false;
                     break;
                 }  
                 if (isMessage(buffer, ELECTION_RESULT)) {
-                    cout << "Deu ruim pra mim, nao sou o lider" << endl;
                     amILeader = false;
                     break;
                 }  
 
                 else if (isElectionMessage(buffer)) {
                     string message(buffer);
-                    cout << "Recebi mensagem de eleicao:" << buffer << endl;
 
                     size_t maxIdPos = message.find(ELECTION_MESSAGE);
 
@@ -164,7 +158,6 @@ void Management::startElection(int initiator, int& sockfd) {
                         char* responseMessage = new char[MAX_BUFFER_SIZE];
                         snprintf(responseMessage, MAX_BUFFER_SIZE, "%s", response.c_str());
                         sendto(sockfd, responseMessage, strlen(responseMessage), 0, (struct sockaddr*)&clientAddr, clientLen);
-                        cout << "Meu id é menor, vou chamar uma eleiçao: " << responseMessage << endl;
                         startElection(myId, sockfd);
                     }
                     else {
@@ -172,9 +165,6 @@ void Management::startElection(int initiator, int& sockfd) {
                         break;
                     }
                 } 
-                else{
-                    cout << "So nao recebi nada mesmo" << endl;
-                }
             }
         }
     }

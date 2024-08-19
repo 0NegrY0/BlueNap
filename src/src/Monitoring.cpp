@@ -30,7 +30,6 @@ int Monitoring::server() {
 
             struct sockaddr_in clientAddr = configureAdress(clientIp, clientPort);
             socklen_t clientLen = sizeof(clientAddr);
-            cout << "ENviando mensagem ao cliente" << clientIp << ":" << clientPort << endl;
 
             if (computers[i].ipAddress == oldServerIP) {
                 setSocketTimeout(sockfd, 1);
@@ -84,9 +83,6 @@ int Monitoring::server() {
                         management.updateStatus(computers[i].id, true);
                     }
                     
-                    // SERVER NOVO: SOU O NOVO LIDER 
-                    // SERVER ANTIGO: OK SORRY
-                    // SERVER NOVO: OK
                     if (isMessage(buffer, NEW_LEADER_MESSAGE)) {
                         bool exit = false;
                         do {
@@ -111,7 +107,6 @@ int Monitoring::server() {
                     }
 
                     if (isMessage(buffer, ELECTION_MESSAGE)) {
-                        cout << "O idiota acha que eu to dormindo" << endl;
                         strcpy(buffer, ELECTION_RESPONSE);
                         sendto(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, clientLen);
                     }
@@ -167,7 +162,6 @@ int Monitoring::client() {
 
         buffer[bytesReceived] = '\0';
         if (isMessage(buffer, MONITORING_MESSAGE)) {
-            cout << "Recebi mensgaem de monitoramento" << endl;
             management.receiveComputers(buffer);
             strcpy(buffer, MONITORING_MESSAGE_RESPONSE);
             sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, serverLen);
@@ -175,7 +169,6 @@ int Monitoring::client() {
 
         else if (isElectionMessage(buffer)) {
             string message(buffer);
-            cout << "Recebi mensagem de eleicao:" << buffer << endl;
 
             size_t maxIdPos = message.find(ELECTION_MESSAGE);
 
@@ -189,7 +182,6 @@ int Monitoring::client() {
                 string response = ELECTION_RESPONSE + to_string(myId);
                 char* responseMessage = new char[MAX_BUFFER_SIZE];
                 snprintf(responseMessage, MAX_BUFFER_SIZE, "%s", response.c_str());
-                cout << "MONITORING - Meu id é menor, vou chamar uma eleiçao: " << responseMessage << endl;
                 sendto(sockfd, responseMessage, strlen(responseMessage), 0, (struct sockaddr*)&serverAddr, serverLen);
                 sleep(2);
                 management.startElection(myId, sockfd);
@@ -197,9 +189,7 @@ int Monitoring::client() {
         } 
 
         else if (isMessage(buffer, ELECTION_RESULT)) {
-            cout << "Recebi mensagem de resultado de eleição" << endl;
             string message(buffer);
-            cout << "Mensagem: " << message << endl;
 
             size_t hostNamePos = message.find("Host Name:");
             size_t macPos = message.find("Host Mac:");
