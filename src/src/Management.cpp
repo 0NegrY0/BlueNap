@@ -275,7 +275,7 @@ Computer Management::deserialize(const char* data, size_t& bytesRead) {
 }
 
 vector<char> Management::setMonitoringMessage() {
-    string message = MONITORING_MESSAGE + to_string(internalClock) + "oldServerIp:" ;
+    string message = "oldServerIp:" + oldServerIP + MONITORING_MESSAGE + to_string(internalClock);
 
     int messageSize = message.length();
 
@@ -328,67 +328,45 @@ vector<char> Management::setMonitoringMessage() {
 }
 
 void Management::receiveComputers(char buffer[]) {
-    string message(buffer);
-    size_t pos = message.find(MONITORING_MESSAGE);
+    const char* currentPos = buffer;
+
+    string message(currentPos);
+    size_t pos = message.find("oldServerIp:");
     if (pos == string::npos) {
+        cerr << "oldServerIp not found" << endl;
+        return;
+    }
+
+    pos = pos + strlen("oldServerIp:");
+    currentPos += pos;
+
+    size_t endIpPos = message.find(MONITORING_MESSAGE);
+    if (endIpPos == string::npos) {
         cerr << "Monitoring message not found" << endl;
         return;
     }
+    string oldServerIP = message.substr(pos, endIpPos - pos);
+    cout << "Old server IP: " << oldServerIP << endl;
 
-    pos += strlen(MONITORING_MESSAGE);
-    size_t endPos = message.find('\n', pos);
-    if (endPos == string::npos) {
-        cerr << "End of clock message not found" << endl;
-        return;
-    }
+    pos = endIpPos + strlen(MONITORING_MESSAGE);
+    currentPos += pos;
 
-    int clockReceived = stoi(message.substr(pos, endPos - pos));
-    pos = endPos + 1; // Mover para o próximo segmento
-
-    // Encontrar e processar oldServerIp:
-    endPos = message.find('\n', pos);
-    if (endPos == string::npos) {
-        cerr << "End of oldServerIp message not found" << endl;
-        return;
-    }
-
-    size_t ipPos = message.find("oldServerIp:", pos);
-    if (ipPos == string::npos || ipPos > endPos) {
-        cerr << "Old server IP prefix not found" << endl;
-        return;
-    }
-
-    ipPos += strlen("oldServerIp:");
-    string oldServerIP = message.substr(ipPos, endPos - ipPos);
-    
-    pos = endPos + 1; // Mover para o próximo segmento
-
-    // Ler o tamanho do vetor
-    if (pos + sizeof(int) > message.size()) {
-        cerr << "Vector size out of bounds" << endl;
-        return;
-    }
-
+    int clockReceived = stoi(message.substr(pos, sizeof(int)));
+    cout << "Clock received: " << clockReceived << endl;
+    pos = pos + sizeof(int);
+    currentPos += pos + 1;
     int vecSize;
-    memcpy(&vecSize, message.data() + pos, sizeof(int));
-    pos += sizeof(int);
-
-    if (vecSize < 0 || pos + vecSize * sizeof(string) > message.size()) {
-        cerr << "Vector size is invalid or out of bounds" << endl;
-        return;
-    }
+    memcpy(&vecSize, currentPos, sizeof(int));
+    currentPos += sizeof(int); 
 
     computers.resize(vecSize);
     for (int i = 0; i < vecSize; ++i) {
         size_t bytesRead = 0;
-        computers[i] = deserialize(message.data() + pos, bytesRead);
-        pos += bytesRead;
+        computers[i] = deserialize(currentPos, bytesRead);
+        currentPos += bytesRead;
     }
-    
     mtx.lock();
     internalClock = clockReceived;
     mtx.unlock();
-    
-    cout << "Old server IP: " << oldServerIP << endl;
 }
 

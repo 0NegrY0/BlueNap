@@ -46,6 +46,7 @@ extern int internalClock;
 extern int nextID;
 extern atomic<bool> isMaster;
 extern string oldServerIP;
+extern string oldServerIP2;
 
 class Utils {
     public:

@@ -25,7 +25,8 @@ int internalClock = -1;
 int nextID = 0;
 //isMaster = 0;
 atomic<bool> isMaster(false);
-string oldServerIP = "";
+string oldServerIP = "129.129.129.129";
+string oldServerIP2 = "";
 
 string Utils::getIPAddress() {
     struct ifaddrs *ifaddr, *ifa;
