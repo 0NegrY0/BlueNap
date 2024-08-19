@@ -20,7 +20,6 @@ int Monitoring::server() {
     listenAtPort(sockfd, myPort);
     while (isMaster) {
         for (size_t i = 0; i < computers.size(); i++) {
-            
             if (computers[i].id == myPort - DEFAULT_PORT) {
                 continue;
             }
@@ -31,84 +30,57 @@ int Monitoring::server() {
             struct sockaddr_in clientAddr = configureAdress(clientIp, clientPort);
             socklen_t clientLen = sizeof(clientAddr);
 
-            if (computers[i].ipAddress == oldServerIP) {
-                setSocketTimeout(sockfd, 1);
-                strcpy(buffer, NEW_LEADER_MESSAGE);
-                sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
-                clientAddr = configureAdress(clientIp, clientPort);
-                memset(buffer, 0, MAX_BUFFER_SIZE);
-                int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
-                if (bytesReceived > 0) {
-                    if (strcmp(buffer, OLD_LEADER_RESPONSE) == 0) {
-                        strcpy(buffer, OK);
-                        sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
-                        mtx.lock();
-                        oldServerIP = "";
-                        internalClock += 1;
-                        mtx.unlock();
-                    }
-                }
-                setSocketTimeout(sockfd, TIMEOUT_SEC);
+            vector<char> send;
+            send = management.setMonitoringMessage();
+            //Ensure the vector is null-terminated if necessary
+            if (send.empty() || send.back() != '\0') {
+                send.push_back('\0');
             }
-            else {
-                vector<char> send;
-                send = management.setMonitoringMessage();
-                //Ensure the vector is null-terminated if necessary
-                if (send.empty() || send.back() != '\0') {
-                    send.push_back('\0');
-                }
 
-                sendto(sockfd, send.data(), send.size(), 0, (struct sockaddr*)&clientAddr, clientLen);
-            
-                clientAddr = configureAdress(clientIp, clientPort);
+            sendto(sockfd, send.data(), send.size(), 0, (struct sockaddr*)&clientAddr, clientLen);
+        
+            clientAddr = configureAdress(clientIp, clientPort);
 
-                memset(buffer, 0, MAX_BUFFER_SIZE);
+            memset(buffer, 0, MAX_BUFFER_SIZE);
 
-                int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
-                if (bytesReceived < 0) {
-                    if (isTimeoutError()) {
-                        management.updateStatus(computers[i].id, false);
-                    }
-                    else {
-                        cerr << "Error in recvfrom(): " << "erro monitoring" << strerror(errno) << endl;
-                        do {
-                            bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr *)&clientAddr, &clientLen);
-                        } while (bytesReceived < 0 && errno == EINTR); 
-                        continue;
-                    }
+            int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
+            if (bytesReceived < 0) {
+                if (isTimeoutError()) {
+                    management.updateStatus(computers[i].id, false);
                 }
                 else {
-                    buffer[bytesReceived] = '\0'; // Adiciona um terminador nulo para evitar problemas com a comparação
-                    if (strcmp(buffer, MONITORING_MESSAGE_RESPONSE) == 0) {
-                        management.updateStatus(computers[i].id, true);
+                    cerr << "Error in recvfrom(): " << "erro monitoring" << strerror(errno) << endl;
+                    do {
+                        bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr *)&clientAddr, &clientLen);
+                    } while (bytesReceived < 0 && errno == EINTR); 
+                    continue;
+                }
+            }
+            else {
+                buffer[bytesReceived] = '\0'; // Adiciona um terminador nulo para evitar problemas com a comparação
+                if (strcmp(buffer, MONITORING_MESSAGE_RESPONSE) == 0) {
+                    management.updateStatus(computers[i].id, true);
+                }
+
+                if (isMessage(buffer, ELECTION_MESSAGE)) {
+                    strcpy(buffer, ELECTION_RESPONSE);
+                    sendto(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, clientLen);
+                }
+
+                if (isMessage(buffer, MONITORING_MESSAGE)) {
+                    const char* currentPos = buffer;
+                    string message(currentPos);
+                    size_t pos = message.find(MONITORING_MESSAGE);
+                    if (pos == string::npos) {
+                        cerr << "Monitoring message not found" << endl;
+                        return -1;
                     }
-                    
-                    if (isMessage(buffer, NEW_LEADER_MESSAGE)) {
-                        bool exit = false;
-                        do {
-                            setSocketTimeout(sockfd, 0.5);
-                            strcpy(buffer, OLD_LEADER_RESPONSE);
-                            sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
-                            clientAddr = configureAdress(clientIp, clientPort);
-                            memset(buffer, 0, MAX_BUFFER_SIZE);
-                            int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &clientLen);
-                            if (bytesReceived > 0) {
-                                if (strcmp(buffer, OK) == 0) {
-                                    exit = true;
-                                }
-                            }
-                        }while(!exit);
-                        setSocketTimeout(sockfd, TIMEOUT_SEC);
-                        sleep(2);
+                    int clockReceived = stoi(message.substr(pos + strlen(MONITORING_MESSAGE)));
+
+                    if (clockReceived > internalClock) {
                         mtx.lock();
                         isMaster = false;
-                        oldServerIP = "";
                         mtx.unlock();
-                    }
-
-                    if (isMessage(buffer, ELECTION_MESSAGE)) {
-                        strcpy(buffer, ELECTION_RESPONSE);
-                        sendto(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, clientLen);
                     }
                 }
             }

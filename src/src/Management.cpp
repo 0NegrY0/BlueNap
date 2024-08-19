@@ -209,6 +209,7 @@ void Management::announceElectionResult() {
     }
     close(sockfd);
     mtx.lock();
+    internalClock = internalClock + 10;
     isMaster = true;
     mtx.unlock();
 }
