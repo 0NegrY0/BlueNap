@@ -7,7 +7,6 @@
 #include <unistd.h>
 
 using namespace std;
-#define PORTA_DISCOVERY 44000
 
 int Discovery::server() {
     struct sockaddr_in clientAddr;
@@ -31,6 +30,9 @@ int Discovery::server() {
         }
 
         if (isExitMessage(buffer)) {
+            memset(buffer, 0, sizeof(buffer));
+            strcpy(buffer, OK);
+            sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
             for (size_t i = 0; i < computers.size(); i++){
                 string ipToCompare(inet_ntoa(clientAddr.sin_addr));
                 if (computers[i].ipAddress == ipToCompare) {
@@ -74,7 +76,6 @@ int Discovery::server() {
             strcpy(buffer, setDiscoveryResponse(port));
 
             sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
-            
         }
     }
     close(sockfd);
@@ -148,7 +149,7 @@ int Discovery::client() {
 
                 mtx.lock();
                 serverIp = inet_ntoa(responseAddr.sin_addr);
-                //serverPort = ntohs(responseAddr.sin_port);
+                serverPort = ntohs(responseAddr.sin_port);
                 serverHostName = hostName;
                 serverMac = hostMac;
                 myPort = port;

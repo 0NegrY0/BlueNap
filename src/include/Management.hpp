@@ -24,6 +24,7 @@ public:
     Computer deserialize(const char* data, size_t& bytesRead);
     vector<char> setMonitoringMessage();
     void receiveComputers(char buffer[]);
+    int getNextID();
 };
 
 #endif

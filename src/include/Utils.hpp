@@ -18,6 +18,8 @@
 #define NEW_LEADER_MESSAGE "NEW LEADER"
 #define OLD_LEADER_RESPONSE "OK SORRY"
 #define OK "OK"
+#define PORTA_DISCOVERY 44000
+
 #include <atomic>
 
 using namespace std;
@@ -43,7 +45,6 @@ extern string serverHostName;
 extern string serverMac;
 extern bool shouldExit;
 extern int internalClock;
-extern int nextID;
 extern atomic<bool> isMaster;
 extern string oldServerIP;
 

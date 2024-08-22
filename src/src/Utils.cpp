@@ -22,7 +22,6 @@ string serverMac = "";
 int myPort = 0;
 bool shouldExit = false;
 int internalClock = -1;
-int nextID = 0;
 //isMaster = 0;
 atomic<bool> isMaster(false);
 string oldServerIP = "";
@@ -158,14 +157,29 @@ int Utils::listenAtPort(int sockfd, int port) {
 
 int Utils::askToCloseConnection() {
     int sockfd = createSocket();
+    setSocketTimeout(sockfd, 20);
+    listenAtPort(sockfd, 0);
             
-    struct sockaddr_in serverAddr = configureAdress(serverIp, serverPort);
+    struct sockaddr_in serverAddr = configureAdress(serverIp, PORTA_DISCOVERY);
 
     char buffer[MAX_BUFFER_SIZE];
-    string message = EXIT_MESSAGE;
 
-    snprintf(buffer, MAX_BUFFER_SIZE, "%s", message.c_str());
-    sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
+    bool sair = false;
+    do {
+        memset(buffer, 0, sizeof(buffer));
+        strcpy(buffer, EXIT_MESSAGE);
+        sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
+
+        serverAddr = configureAdress(serverIp, PORTA_DISCOVERY);
+        int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, (socklen_t*)sizeof(serverAddr));
+        if (bytesReceived >= 0) {
+            cout << "UTILS Received: " << buffer << endl;
+            if (isMessage(buffer, OK)) {
+                cout << "Connection closed" << endl;
+                sair = true;
+            }
+        }
+    } while (!sair);
 
     return 0;
 }

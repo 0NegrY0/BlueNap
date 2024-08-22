@@ -17,13 +17,26 @@ Computer Management::createComputer(string clientIp, string clientMac) {
     Computer comp;
     comp.macAddress = clientMac;
     comp.ipAddress = clientIp;
-    comp.id = nextID;
-    nextID++;
+    comp.id = getNextID();
     comp.isServer = false;
     comp.isAwake = true;
     comp.port = DEFAULT_PORT + comp.id;
 
     return comp;
+}
+
+int Management::getNextID() {
+    if (computers.empty()) {
+        return 0;
+    }
+
+    int max = -1;
+    for (auto& comp: computers) {
+        if (comp.id > max) {
+            max = comp.id;
+        }
+    }
+    return max + 1;
 }
 
 void Management::removeComputer(int id) {
