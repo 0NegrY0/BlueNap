@@ -109,13 +109,7 @@ int Interface::server() {
                 int id = stoi(input);
                 for (auto& c : computers){
                     if (c.id == id) {
-                        management.wakeOnLan(c.macAddress, c.ipAddress);
-                        management.wakeOnLan(c.macAddress, c.ipAddress);
-                        management.wakeOnLan(c.macAddress, c.ipAddress);
-                        management.wakeOnLan(c.macAddress, c.ipAddress);
-                        management.wakeOnLan(c.macAddress, c.ipAddress);
-                        management.wakeOnLan(c.macAddress, c.ipAddress);
-                        management.wakeOnLan(c.macAddress, c.ipAddress);
+                        management.wakeOnLan(c.macAddress);
                         sleep(1);
                     }
                 }         
