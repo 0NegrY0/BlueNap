@@ -172,12 +172,16 @@ int Utils::askToCloseConnection() {
 
         serverAddr = configureAdress(serverIp, PORTA_DISCOVERY);
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, (socklen_t*)sizeof(serverAddr));
+        cout << "TESTE" << buffer << endl;
         if (bytesReceived >= 0) {
             cout << "UTILS Received: " << buffer << endl;
             if (isMessage(buffer, OK)) {
                 cout << "Connection closed" << endl;
                 sair = true;
             }
+        }
+        else {
+            cout << "Não recebi nada" << endl;
         }
     } while (!sair);
 

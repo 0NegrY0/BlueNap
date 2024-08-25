@@ -30,6 +30,7 @@ int Discovery::server() {
         }
 
         if (isExitMessage(buffer)) {
+            cout << "Quer sair" << endl;
             memset(buffer, 0, sizeof(buffer));
             strcpy(buffer, OK);
             sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clientAddr, clientLen);
