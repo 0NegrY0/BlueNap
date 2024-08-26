@@ -11,31 +11,8 @@
 
 using namespace std;
 
-bool getInputWithTimeout(string& input, int timeoutSeconds) {
-    auto future = async(launch::async, []() {
-        string temp;
-        getline(cin, temp);
-        return temp;
-    });
-
-    if (future.wait_for(chrono::seconds(timeoutSeconds)) == future_status::timeout) {
-        return false;
-    } else {
-        input = future.get();
-        return true;
-    }
-}
-
 int Interface::server() {
     Management management;
-
-    int index = 0;
-    for (size_t i=0; i<computers.size(); i++){
-        if (computers[i].isServer){
-            index = i;
-            break;
-        }
-    }
 
     while (isMaster){
 
@@ -69,7 +46,11 @@ int Interface::server() {
 
         cout << endl << "============ Leader Machine ============" << endl;
         mtx.lock();
-        cout << "ID: "<<computers[index].id<<"\t\tHostname: "<<computers[index].hostName<<"\t\tMAC Adress:"<<computers[index].macAddress<<"\t\tIP Adress: "<<computers[index].ipAddress;
+        for (size_t i=0; i<computers.size(); i++){
+            if (computers[i].isServer){
+                cout << "ID: "<<computers[i].id<<"\t\tHostname: "<<computers[i].hostName<<"\t\tMAC Adress:"<<computers[i].macAddress<<"\t\tIP Adress: "<<computers[i].ipAddress;
+            }
+        }
         cout << endl << "================ Clients ===============" << endl;
         for (size_t i=0; i<computers.size(); i++){
             if (!computers[i].isServer){
@@ -80,7 +61,7 @@ int Interface::server() {
                 else{
                     cout << "No"<<endl;
                 }
-            }
+            }  
         }
         mtx.unlock();
         
