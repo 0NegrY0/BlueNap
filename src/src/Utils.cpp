@@ -167,28 +167,16 @@ int Utils::askToCloseConnection() {
 
     bool sair = false;
     do {
-        memset(buffer, 0, MAX_BUFFER_SIZE);
+        memset(buffer, 0, sizeof(buffer));
         strcpy(buffer, EXIT_MESSAGE);
         sendto(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, serverLen);
 
         serverAddr = configureAdress(serverIp, PORTA_DISCOVERY);
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, &serverLen);
-        cout << "TESTE" << buffer << endl;
         if (bytesReceived >= 0) {
-            cout << "UTILS Received: " << buffer << endl;
             if (isMessage(buffer, OK)) {
-                cout << "Connection closed" << endl;
                 sair = true;
             }
-        }
-        else {
-            if (isTimeoutError()) {
-                cout << "Timeout" << endl;
-            }
-            else {
-                cerr << "Error in recvfrom(): " << strerror(errno) << endl;
-            }
-            cout << "Não recebi nada" << endl;
         }
     } while (!sair);
 

@@ -198,6 +198,7 @@ int Interface::client() {
                 mtx.lock();
                 shouldExit = true;
                 mtx.unlock();
+                cout << "Should Exit: " << shouldExit << endl;
             }      
         }
         system("clear");
