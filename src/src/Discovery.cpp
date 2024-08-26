@@ -160,6 +160,7 @@ int Discovery::client() {
         }
     }
     close(sockfd);
+    cout << "Desligando discovery cliente" << endl;
     return 0;
 }
 

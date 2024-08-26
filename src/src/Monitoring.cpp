@@ -188,5 +188,6 @@ int Monitoring::client() {
         }
     }
     close(sockfd);
+    cout << "Desligando monitoring cliente" << endl;
     return 0;
 }
