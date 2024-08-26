@@ -181,6 +181,12 @@ int Utils::askToCloseConnection() {
             }
         }
         else {
+            if (isTimeoutError()) {
+                cout << "Timeout" << endl;
+            }
+            else {
+                cerr << "Error in recvfrom(): " << strerror(errno) << endl;
+            }
             cout << "Não recebi nada" << endl;
         }
     } while (!sair);
