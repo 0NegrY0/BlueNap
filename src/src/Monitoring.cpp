@@ -123,11 +123,8 @@ int Monitoring::client() {
         int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, &serverLen);
         
         if (bytesReceived < 0) {
-            if (isTimeoutError()) {
+            if (isTimeoutError() && !shouldExit) {
                 management.startElection(myPort - DEFAULT_PORT, sockfd);
-            }
-            else {
-                std::cerr << "Error in recvfrom(): " << strerror(errno) << endl;
             }
             continue;
         }
