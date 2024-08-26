@@ -115,7 +115,7 @@ int Monitoring::client() {
     }
 
     char buffer[MAX_BUFFER_SIZE];
-    struct sockaddr_in serverAddr; // = configureAdress(serverIp, serverPort);
+    struct sockaddr_in serverAddr;
     socklen_t serverLen = sizeof(serverAddr);
     Management management;
     
@@ -131,9 +131,15 @@ int Monitoring::client() {
 
         buffer[bytesReceived] = '\0';
         if (isMessage(buffer, MONITORING_MESSAGE)) {
+            string newServerIp(inet_ntoa(serverAddr.sin_addr));
             management.receiveComputers(buffer);
             strcpy(buffer, MONITORING_MESSAGE_RESPONSE);
             sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, serverLen);
+            if (newServerIp != serverIp) {
+                mtx.lock();
+                serverIp = newServerIp;
+                mtx.unlock();
+            }
         }
 
         else if (isElectionMessage(buffer)) {
