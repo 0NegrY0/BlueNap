@@ -161,17 +161,18 @@ int Utils::askToCloseConnection() {
     listenAtPort(sockfd, 0);
             
     struct sockaddr_in serverAddr = configureAdress(serverIp, PORTA_DISCOVERY);
+    socklen_t serverLen = sizeof(serverAddr);
 
     char buffer[MAX_BUFFER_SIZE];
 
     bool sair = false;
     do {
-        memset(buffer, 0, sizeof(buffer));
+        memset(buffer, 0, MAX_BUFFER_SIZE);
         strcpy(buffer, EXIT_MESSAGE);
-        sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
+        sendto(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, serverLen);
 
         serverAddr = configureAdress(serverIp, PORTA_DISCOVERY);
-        int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, (socklen_t*)sizeof(serverAddr));
+        int bytesReceived = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)&serverAddr, &serverLen);
         cout << "TESTE" << buffer << endl;
         if (bytesReceived >= 0) {
             cout << "UTILS Received: " << buffer << endl;
