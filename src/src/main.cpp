@@ -99,6 +99,7 @@ void client(shared_ptr<Discovery> discovery, shared_ptr<Monitoring> monitoring, 
     threads.push_back(thread(&Interface::client, interface));
 
     joinThreads(threads);
+    cout << "Client finished" << endl;
     
     if (isMaster) {
         server(discovery, monitoring, interface);
