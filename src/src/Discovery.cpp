@@ -37,7 +37,9 @@ int Discovery::server() {
             for (size_t i = 0; i < computers.size(); i++){
                 string ipToCompare(inet_ntoa(clientAddr.sin_addr));
                 if (computers[i].ipAddress == ipToCompare) {
+                    mtx.lock();
                     computers.erase(computers.begin() + i);
+                    mtx.unlock();
                     break;
                 }
             }
